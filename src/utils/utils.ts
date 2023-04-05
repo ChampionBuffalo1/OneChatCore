@@ -39,10 +39,9 @@ const range = (min: number, max: number) => {
   // The maximum is exclusive and the minimum is inclusive
   return Math.floor(Math.random() * (max - min) + min);
 };
-
+const tp = 2000;
 const expBackOff = (k: number): number => {
-  let r = range(0, 2 ** k + 1);
-  let tp = 2000;
+  const r = range(0, 2 ** k + 1);
   return Math.max(tp * 2, r * tp);
 };
 
