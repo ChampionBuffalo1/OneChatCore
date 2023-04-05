@@ -1,0 +1,51 @@
+---
+version: "3.8"
+
+services:
+  api:
+    container_name: api
+    build: .
+    restart: on-failure
+    ports:
+      - ${API_PORT:-3001}:${API_PORT:-3001}
+    env_file: .env
+    environment:
+      MONGO_URL: mongodb://${MONGO_ROOT_USER:-root}:{MONGO_ROOT_PASSWORD:-admin}@mongo:27017
+      MONGO_DB_NAME: ${MONGO_DB_NAME:-onechat}
+    networks:
+      - main
+    depends_on:
+      - mongo
+      - redis
+
+  redis:
+    container_name: redis-server
+    image: redis:alpine
+    restart: on-failure
+    volumes:
+      - ./db/redis:/data
+    networks:
+      - main
+      - redis
+
+  mongo:
+    container_name: mongodb-server
+    image: mongo:latest
+    restart: on-failure
+    volumes:
+      - ./db/mongo:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:-root}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-admin}
+      MONGO_INITDB_DATABASE: ${MONGO_DB_NAME:-onechat}
+    networks:
+      - main
+      - mongo
+
+volumes:
+  mongo: {}
+  redis: {}
+networks:
+  main: {}
+  mongo: {}
+  redis: {}
