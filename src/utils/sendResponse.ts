@@ -9,7 +9,10 @@ const sendResponse = <V = string, M = null>(
   if (!isError && !Array.isArray(results) && (results as ErrorInfo).code) Logger.debug('The message could be an error');
 
   if (isError) return { errors: [results], results: [] } as FailedReq;
-  return { errors: [], results: Array.isArray(results) ? results : [results] } as SuccessfulReq;
+  return {
+    errors: [],
+    results: Array.isArray(results) ? results : [results]
+  } as SuccessfulReq;
 };
 
 export { sendResponse };

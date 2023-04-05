@@ -1,4 +1,4 @@
-import { ObjectId } from "mongodb";
+import { ObjectId } from 'mongodb';
 
 export type mongoId = {
   _id?: string | ObjectId;
@@ -7,4 +7,4 @@ export type mongoId = {
 export type IUser = mongoId & {
   username: string;
   passwordHash: string;
-}
+};

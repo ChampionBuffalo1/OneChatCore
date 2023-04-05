@@ -1,14 +1,7 @@
-import { COLLECTION_NAME } from "../Constants";
-import { DbInstance } from "../utils";
-import type {
-  WithId,
-  Document,
-  FindCursor,
-  Collection,
-  InsertManyResult,
-  InsertOneResult,
-} from "mongodb";
-import type { Nullable } from "../typings";
+import { DbInstance } from '../utils';
+import type { Nullable } from '../typings';
+import { COLLECTION_NAME } from '../Constants';
+import type { WithId, Document, FindCursor, Collection, InsertManyResult, InsertOneResult } from 'mongodb';
 
 export class BaseModel<T extends Record<string, unknown>> {
   protected static colMap: Map<string, Collection | undefined> = new Map();
@@ -22,14 +15,12 @@ export class BaseModel<T extends Record<string, unknown>> {
   protected static _insertOne = <T extends Record<string, unknown>>(
     colName: string,
     data: T
-  ): Promise<InsertOneResult<Document>> =>
-    BaseModel.colMap.get(colName)!.insertOne(data);
+  ): Promise<InsertOneResult<Document>> => BaseModel.colMap.get(colName)!.insertOne(data);
 
   protected static _insertMany = <T extends Record<string, unknown>>(
     colName: string,
     data: T[]
-  ): Promise<InsertManyResult<Document>> =>
-    BaseModel.colMap.get(colName)!.insertMany(data);
+  ): Promise<InsertManyResult<Document>> => BaseModel.colMap.get(colName)!.insertMany(data);
 
   protected static _findOne = <T extends Record<string, unknown>>(
     colName: string,
@@ -37,7 +28,7 @@ export class BaseModel<T extends Record<string, unknown>> {
     projection?: string
   ): Promise<Nullable<WithId<Document>>> =>
     BaseModel.colMap.get(colName)!.findOne(query, {
-      projection: getProjectionObject(projection),
+      projection: getProjectionObject(projection)
     });
 
   protected static _findMany = <T extends Record<string, unknown>>(
@@ -46,13 +37,11 @@ export class BaseModel<T extends Record<string, unknown>> {
     projection?: string
   ): FindCursor<WithId<Document>> =>
     BaseModel.colMap.get(colName)!.find(query, {
-      projection: getProjectionObject(projection),
+      projection: getProjectionObject(projection)
     });
 
-  protected static _exists = <T extends Record<string, unknown>>(
-    colName: string,
-    query: T
-  ): boolean => !!BaseModel._findOne(colName, query, "_id");
+  protected static _exists = <T extends Record<string, unknown>>(colName: string, query: T): boolean =>
+    !!BaseModel._findOne(colName, query, '_id');
 
   protected _save(data: T): Promise<InsertOneResult<Document>> {
     return BaseModel._insertOne(this.col_name, data);
@@ -62,9 +51,9 @@ export class BaseModel<T extends Record<string, unknown>> {
 function getProjectionObject(projection?: string) {
   const proj: Record<string, true> = {};
   projection
-    ?.split(",")
-    .map((k) => k.trim())
-    .forEach((k) => {
+    ?.split(',')
+    .map(k => k.trim())
+    .forEach(k => {
       proj[k] = true;
     });
   return proj;

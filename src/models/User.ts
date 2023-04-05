@@ -1,6 +1,6 @@
-import { IUser } from "../typings/models";
-import { BaseModel } from "./BaseModel";
-import { COLLECTION_NAME } from "../Constants";
+import { IUser } from '../typings/models';
+import { BaseModel } from './BaseModel';
+import { COLLECTION_NAME } from '../Constants';
 
 const collectionName = COLLECTION_NAME.USER;
 
@@ -17,15 +17,13 @@ export default class User extends BaseModel<IUser> {
   static findMany = (query: Partial<IUser>[], projection?: string) =>
     BaseModel._findMany(collectionName, query, projection);
 
-  static insertOne = (query: IUser) =>
-    BaseModel._insertOne(collectionName, query);
+  static insertOne = (query: IUser) => BaseModel._insertOne(collectionName, query);
 
   static insertMany = (query: IUser[]) => {
     BaseModel._insertMany(collectionName, query);
   };
 
-  static exists = async (query: Partial<IUser>): Promise<boolean> =>
-    !!(await User.findOne(query, "_id"));
+  static exists = async (query: Partial<IUser>): Promise<boolean> => !!(await User.findOne(query, '_id'));
 
   save() {
     super._save(this.data);

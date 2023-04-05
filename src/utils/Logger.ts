@@ -11,7 +11,11 @@ const Logger = winston.createLogger({
   transports: [
     new winston.transports.Console(),
     new winston.transports.File({ filename: 'combined.log', dirname: 'logs' }),
-    new winston.transports.File({ filename: 'error.log', level: 'error', dirname: 'logs' })
+    new winston.transports.File({
+      filename: 'error.log',
+      level: 'error',
+      dirname: 'logs'
+    })
   ]
 });
 export default Logger;

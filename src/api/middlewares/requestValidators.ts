@@ -29,7 +29,7 @@ const reqBodyHasKeys =
   ): ((req: RequestBody<T>, res: Response, next: NextFunction) => void) =>
   (req, res, next) => {
     for (const key in keys) {
-     if (
+      if (
         !Object.hasOwn(req.body, key) || ['number', 'boolean'].includes(typeof req.body.key) ? false : !req.body.key
       ) {
         res.status(HttpCodes.FORBIDDEN).send(

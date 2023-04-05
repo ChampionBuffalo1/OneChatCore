@@ -28,10 +28,7 @@ import { PORT, isProd, cookieName, cookieSecret, HttpCodes, maxCookieAge } from 
       name: cookieName,
       secret: cookieSecret,
       store: new RedisStore({
-        // https://github.com/tj/connect-redis/issues/300#issuecomment-580038867
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        
-        client: redisClient 
+        client: redisClient
       }),
       cookie: {
         httpOnly: true,
