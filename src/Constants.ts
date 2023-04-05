@@ -3,7 +3,7 @@ export const isProd: boolean = process.env.NODE_ENV === "production";
 export const stableApiVersion = 1;
 export const cookieSecret: string = process.env.COOKIE_SECRET!;
 export const cookieName: string = process.env.COOKIE_NAME || "protid";
-export const databaseName: string = process.env.MONGO_DB_NAME || "pwdata";
+export const databaseName: string = process.env.MONGO_DB_NAME || "onechat";
 export const maxCookieAge: number = 1000 * 60 * 60 * 24; // 24 hrs
 
 export const maxPassLen = 30;
