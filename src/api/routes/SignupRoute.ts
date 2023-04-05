@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
 import { Router } from 'express';
-import { sendResponse } from '../../utils';
+import { minPasswordCriteria, sendResponse } from '../../utils';
 import { isInvalidMethod } from '../middlewares';
 import { DatabaseError, InvalidUsername } from '../errors';
 import { createUser, hasUsername } from '../controllers/userController';
@@ -13,9 +13,15 @@ singupRoute.put('/', async (req, res) => {
   const password = req.body['password'];
   try {
     if (!username || !password) {
-      res
-        .status(HttpCodes.BAD_REQUEST)
-        .send(sendResponse({ code: ERROR_CODES.INCOMPLETE_FORM, name: 'username or password missing' }, true));
+      res.status(HttpCodes.BAD_REQUEST).send(
+        sendResponse(
+          {
+            code: ERROR_CODES.INCOMPLETE_FORM,
+            name: 'username or password missing'
+          },
+          true
+        )
+      );
       return;
     }
     if (await hasUsername(username)) {
@@ -29,6 +35,18 @@ singupRoute.put('/', async (req, res) => {
         )
       );
       return;
+    }
+    const passmatch = await minPasswordCriteria(password);
+    if (!passmatch.success) {
+      res.status(HttpCodes.NOT_ACCEPTABLE).send(
+        sendResponse(
+          {
+            code: ERROR_CODES.INVALID_CRED,
+            name: passmatch.error
+          },
+          true
+        )
+      );
     }
     const hashPass = await bcrypt.hash(password, bcrpytSaltRounds);
     const id = await createUser(username, hashPass);
