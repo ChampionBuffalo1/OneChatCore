@@ -9,6 +9,7 @@
     "watch": "tsc -w --pretty",
     "start": "node .",
     "build": "rimraf dist/ && tsc",
+    "pretty": "prettier --write \"src/**/*.{js,ts,json,yml}\"",
     "gen-env": "gen-env-types .env -o src/typings/env.d.ts -e ."
   },
   "engines": {
@@ -48,6 +49,7 @@
     "eslint-config-prettier": "^8.6.0",
     "gen-env-types": "^1.3.4",
     "nodemon": "^2.0.20",
+    "prettier": "^2.8.7",
     "rimraf": "^4.1.2",
     "typescript": "^4.9.5"
   }
