@@ -1,0 +1,34 @@
+parser: '@typescript-eslint/parser'
+env:
+  es2022: true
+  node: true
+extends:
+  - 'prettier'
+  - 'eslint:recommended'
+  - 'plugin:@typescript-eslint/recommended'
+rules:
+  no-var: error
+  no-void: error
+  no-console: warn
+  prefer-const: error
+  no-else-return: warn
+  arrow-body-style: error
+  no-self-compare: error
+  no-implied-eval: error
+  no-invalid-this: error
+  no-await-in-loop: warn
+  # Disallow trailing whitespace at the end of lines (auto-fix)
+  no-trailing-spaces: warn
+  # Disallow loops with a body that allows only one iteration
+  no-unreachable-loop: error
+  no-duplicate-imports: error
+  no-use-before-define: error
+  no-template-curly-in-string: error
+  # Disallow expressions where the operation doesn't affect the value
+  no-constant-binary-expression: error
+  no-unused-private-class-members: warn
+  '@typescript-eslint/ban-ts-comment': warn
+ignorePatterns:
+  - dist/
+  - build/
+  - '**/typings/*'
