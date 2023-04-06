@@ -48,30 +48,39 @@ const createMongoConnection = (): Promise<void> =>
         keepAliveInitialDelay: MINUTE * 2
       });
 
-      client.connect().catch(reject);
-      client.on('connectionCreated', () => {
+      if (retryCount > maxRetries) reject('Maximum mongo re-connect tries exceeded.');
+      client.connect().catch(handleError);
+      client.on('connectionReady', () => {
         DbInstance = client.db(databaseName);
-        // Reset incase error occurs
+        // Reset retry count once the connection has established
         retryCount = 1;
         resolve();
       });
-      client.on('error', err => {
-        // Incase the error occurs after connection establishment
-        DbInstance = undefined;
-
-        retryCount++;
-        Logger.error(err.toString());
-        Logger.debug(`MongoDB connection failure count: ${retryCount}`);
-        if (retryCount > maxRetries) reject('Maximum mongo re-connect tries exceeded.');
-
-        const retryTime = expBackOff(retryCount);
-        // Retry after some time
-        setTimeout(createMongoConnection, retryTime);
-        Logger.info(`Re-connecting to MongoDB in ${retryTime / MINUTE} minutes.`);
-      });
+      /**
+        TODO: Find the listener that is invoked when the connection is lost to mongodb
+        
+        Reason: If not handled propely mongodb driver would buffer the queries forever and never return 
+          before connection recovery instead of failing them out which could hang the program's execution.
+       */  
+      client.on('serverClosed', () => Logger.info('Connection to mongodb has been closed.'));
+      client.on('error', (error: Error) => Logger.error(`Mongodb error: ${error.message || error}`));
     } else {
       resolve();
     }
   });
 
 export { createMongoConnection, createRedisConnection, DbInstance };
+
+function handleError(err: Error & { code: number }) {
+  // Authentication error
+  if (err.code === 18) return;
+  // Incase the error occurs after connection establishment
+  DbInstance = undefined;
+  retryCount++;
+  Logger.error(err.toString());
+  Logger.debug(`MongoDB connection failure count: ${retryCount - 1}`);
+
+  const retryTime = expBackOff(retryCount);
+  setTimeout(createMongoConnection, retryTime);
+  Logger.info(`Re-connecting to MongoDB in ${retryTime} seconds.`);
+}
