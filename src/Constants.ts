@@ -7,7 +7,7 @@ export const databaseName: string = process.env.MONGO_DB_NAME || 'onechat';
 export const maxCookieAge: number = 1000 * 60 * 60 * 24; // 24 hrs
 
 export const maxPassLen = 60;
-export const maxRetries = 10;
+export const maxRetries = 6; // Inclusive
 export const bcrpytSaltRounds = 8;
 export const redisURL: string = process.env.REDIS_URL!;
 export const mongoURL: string = process.env.MONGO_URL!;

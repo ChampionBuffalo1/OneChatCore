@@ -38,7 +38,8 @@ const range = (min: number, max: number) => {
   return Math.floor(Math.random() * (max - min) + min);
 };
 
-const tp = 2000;
+const tp = 1000 * 15;
+// Max is 450K ms (7.5 minute)
 const expBackOff = (k: number): number => {
   const r = range(0, 2 ** k + 1);
   return Math.max(tp * 2, r * tp);
