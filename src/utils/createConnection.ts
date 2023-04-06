@@ -37,18 +37,19 @@ const createRedisConnection = (): Promise<Redis> =>
     }
   });
 const createMongoConnection = (): Promise<void> =>
-  new Promise((resolve, reject) => {
+  new Promise(resolve => {
     if (!DbInstance) {
       const client = new MongoClient(mongoURL, {
         family: 4,
         maxPoolSize: 100,
         retryWrites: true,
         connectTimeoutMS: 1000 * 10,
+        heartbeatFrequencyMS: 1000 * 30,
         keepAlive: true,
-        keepAliveInitialDelay: MINUTE * 2
+        keepAliveInitialDelay: MINUTE
       });
-
-      if (retryCount > maxRetries) reject('Maximum mongo re-connect tries exceeded.');
+      // Cannot keep the server alive without having the connection to mongodb
+      if (retryCount > maxRetries) process.exit(0)
       client.connect().catch(handleError);
       client.on('connectionReady', () => {
         DbInstance = client.db(databaseName);
@@ -56,12 +57,8 @@ const createMongoConnection = (): Promise<void> =>
         retryCount = 1;
         resolve();
       });
-      /**
-        TODO: Find the listener that is invoked when the connection is lost to mongodb
-        
-        Reason: If not handled propely mongodb driver would buffer the queries forever and never return 
-          before connection recovery instead of failing them out which could hang the program's execution.
-       */  
+      client.on('serverHeartbeatFailed', handleError);
+      // Called on `client#close()` but this listener might be useless because client isn't exposed outside 
       client.on('serverClosed', () => Logger.info('Connection to mongodb has been closed.'));
       client.on('error', (error: Error) => Logger.error(`Mongodb error: ${error.message || error}`));
     } else {
