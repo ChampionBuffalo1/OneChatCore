@@ -5,6 +5,8 @@ import apiRoute from './api';
 import Logger from './utils/Logger';
 import session from 'express-session';
 import connectRedis from 'connect-redis';
+import { WebSocketServer } from 'ws';
+import { createServer } from 'node:http';
 import { createMongoConnection, createRedisConnection } from './utils';
 import { PORT, isProd, cookieName, cookieSecret, HttpCodes, maxCookieAge } from './Constants';
 
@@ -12,6 +14,7 @@ import { PORT, isProd, cookieName, cookieSecret, HttpCodes, maxCookieAge } from 
   await createMongoConnection();
 
   const app = express();
+  const server = createServer(app);
   const RedisStore = connectRedis(session);
   const redisClient = await createRedisConnection();
 
@@ -44,9 +47,25 @@ import { PORT, isProd, cookieName, cookieSecret, HttpCodes, maxCookieAge } from 
   app.use('/api', apiRoute);
   app.get('/', (_, res) => res.sendStatus(HttpCodes.OK));
 
-  app.listen(PORT, () => Logger.info(`Listening on port: ${PORT}`));
+  server.listen(PORT, () => Logger.info(`Listening on port: ${PORT}`));
 
-  process.on('unhandledRejection', error => {
-    Logger.error(`Unhandled Promise Rejection\nError: ${(error as Error).message || error}`);
+  // `noServer` is so that `ws` doesn't create it's own HTTP Server for upgrade
+  const wss = new WebSocketServer({
+    noServer: true,
+    path: '/ws'
   });
+
+  wss.on('connection', ws => {
+    ws.send('Websocket test');
+  });
+
+  server.on('upgrade', (req, socket, head) => {
+    wss.handleUpgrade(req, socket, head, socket => {
+      wss.emit('connection', socket, req);
+    });
+  });
+
+  process.on('unhandledRejection', (error: Error) =>
+    Logger.error(`Unhandled Promise Rejection\nError: ${error.message || error}`)
+  );
 })();
