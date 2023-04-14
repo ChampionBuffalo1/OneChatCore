@@ -1,5 +1,5 @@
 import { HttpCodes } from '../../Constants';
-import { sendResponse } from '../../utils';
+import { sendResponse } from '../../lib';
 import type { Request, Response, NextFunction } from 'express';
 
 /**

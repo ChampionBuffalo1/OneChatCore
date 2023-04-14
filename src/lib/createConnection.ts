@@ -49,7 +49,7 @@ const createMongoConnection = (): Promise<void> =>
         keepAliveInitialDelay: MINUTE
       });
       // Cannot keep the server alive without having the connection to mongodb
-      if (retryCount > maxRetries) process.exit(0)
+      if (retryCount > maxRetries) process.exit(0);
       client.connect().catch(handleError);
       client.on('connectionReady', () => {
         DbInstance = client.db(databaseName);
@@ -57,8 +57,12 @@ const createMongoConnection = (): Promise<void> =>
         retryCount = 1;
         resolve();
       });
-      client.on('serverHeartbeatFailed', handleError);
-      // Called on `client#close()` but this listener might be useless because client isn't exposed outside 
+      client.on(
+        'serverHeartbeatFailed',
+        // Only do heartbeat error handling if db was already connected.
+        error => DbInstance && handleError(error.failure)
+      );
+      // Called on `client#close()` but this listener might be useless because client isn't exposed outside
       client.on('serverClosed', () => Logger.info('Connection to mongodb has been closed.'));
       client.on('error', (error: Error) => Logger.error(`Mongodb error: ${error.message || error}`));
     } else {
@@ -68,8 +72,9 @@ const createMongoConnection = (): Promise<void> =>
 
 export { createMongoConnection, createRedisConnection, DbInstance };
 
-function handleError(err: Error & { code: number }) {
+function handleError(err: Error | { code?: number }) {
   // Authentication error
+  // @ts-ignore: If code property doesn't exists then the comparison will return false
   if (err.code === 18) return;
   // Incase the error occurs after connection establishment
   DbInstance = undefined;

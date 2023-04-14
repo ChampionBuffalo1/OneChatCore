@@ -1,4 +1,4 @@
-import { DbInstance } from '../utils';
+import { DbInstance } from '../lib';
 import type { Nullable } from '../typings';
 import { COLLECTION_NAME } from '../Constants';
 import type { WithId, Document, FindCursor, Collection, InsertManyResult, InsertOneResult } from 'mongodb';

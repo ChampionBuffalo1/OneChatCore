@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { sendResponse } from '../../utils';
+import { sendResponse } from '../../lib';
 import { HttpCodes, ERROR_CODES, redirectUriKey } from '../../Constants';
 import { verifyUser } from '../controllers/userController';
 import { InvalidCredential } from '../errors/ValidationErrors';

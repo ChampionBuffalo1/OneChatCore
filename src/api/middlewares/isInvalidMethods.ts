@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { HttpCodes } from '../../Constants';
-import { sendResponse } from '../../utils';
+import { sendResponse } from '../../lib';
 
 /**
  * middleware to deny requests to routes with unsupported methods

@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
 import { Router } from 'express';
-import { minPasswordCriteria, sendResponse } from '../../utils';
+import { minPasswordCriteria, sendResponse } from '../../lib';
 import { isInvalidMethod } from '../middlewares';
 import { DatabaseError, InvalidUsername } from '../errors';
 import { createUser, hasUsername } from '../controllers/userController';

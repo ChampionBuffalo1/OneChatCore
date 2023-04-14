@@ -1,7 +1,7 @@
 import bcrypt from 'bcrypt';
 import { ObjectId } from 'mongodb';
 import User from '../../models/User';
-import { isValidUsername } from '../../utils';
+import { isValidUsername } from '../../lib';
 import { DatabaseError, IntegrityFailure, InvalidCredential, InvalidUsername } from '../errors';
 
 const createUser = async (username: string, hashPass: string): Promise<string | undefined> => {
