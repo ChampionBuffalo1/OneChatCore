@@ -2,13 +2,14 @@ import 'dotenv-safe/config';
 import cors from 'cors';
 import express from 'express';
 import apiRoute from './api';
-import Logger from './utils/Logger';
+import Logger from './lib/Logger';
 import session from 'express-session';
 import connectRedis from 'connect-redis';
 import { WebSocketServer } from 'ws';
 import { createServer } from 'node:http';
-import { createMongoConnection, createRedisConnection } from './utils';
+import { createMongoConnection, createRedisConnection } from './lib';
 import { PORT, isProd, cookieName, cookieSecret, HttpCodes, maxCookieAge } from './Constants';
+import SocketStore from './lib/SocketStore';
 
 (async (): Promise<void> => {
   await createMongoConnection();
@@ -49,19 +50,18 @@ import { PORT, isProd, cookieName, cookieSecret, HttpCodes, maxCookieAge } from 
 
   server.listen(PORT, () => Logger.info(`Listening on port: ${PORT}`));
 
-  // `noServer` is so that `ws` doesn't create it's own HTTP Server for upgrade
+  // `server` is provided so that the `ws` doesn't create it's own HTTP Server for ws-upgrade
   const wss = new WebSocketServer({
-    noServer: true,
-    path: '/ws'
+    path: '/ws',
+    server
   });
 
   wss.on('connection', ws => {
-    ws.send('Websocket test');
-  });
-
-  server.on('upgrade', (req, socket, head) => {
-    wss.handleUpgrade(req, socket, head, socket => {
-      wss.emit('connection', socket, req);
+    ws.send('hello');
+    SocketStore.setConnection("tmpid", ws)
+    ws.on('message', buf => {
+      console.debug(buf.toString());
+      SocketStore.getConnection("tmpid")?.send("welcome")
     });
   });
 
