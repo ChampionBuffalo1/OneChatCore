@@ -87,7 +87,7 @@ export default class WebsocketMainter {
     } else {
       this.sendMessage(uuid, {
         error: auth.error
-      });
+      }, true);
     }
   }
   // TODO
