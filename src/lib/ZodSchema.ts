@@ -20,4 +20,6 @@ const WsMessageSchema = z.object({
   images: z.optional(z.array(z.string()))
 });
 
+type WsMessageSchema = z.infer<typeof WsMessageSchema>;
+
 export { WsAuthSchema, WsMessageSchema, PasswordSchema };
