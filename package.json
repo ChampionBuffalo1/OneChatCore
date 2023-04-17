@@ -36,6 +36,7 @@
     "zod": "^3.21.4"
   },
   "devDependencies": {
+    "@total-typescript/ts-reset": "^0.4.2",
     "@types/bcrypt": "^5.0.0",
     "@types/connect-redis": "^0.0.20",
     "@types/cors": "^2.8.13",
