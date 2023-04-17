@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
 import { Router } from 'express';
-import { minPasswordCriteria, sendResponse } from '../../lib';
+import { PasswordSchema, sendResponse } from '../../lib';
 import { isInvalidMethod } from '../middlewares';
 import { DatabaseError, InvalidUsername } from '../errors';
 import { createUser, hasUsername } from '../controllers/userController';
@@ -36,7 +36,7 @@ singupRoute.put('/', async (req, res) => {
       );
       return;
     }
-    const passmatch = await minPasswordCriteria(password);
+    const passmatch = await PasswordSchema.safeParseAsync(password);
     if (!passmatch.success) {
       res.status(HttpCodes.NOT_ACCEPTABLE).send(
         sendResponse(
