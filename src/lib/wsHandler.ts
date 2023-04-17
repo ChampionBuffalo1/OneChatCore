@@ -12,6 +12,8 @@ const maxwait = 30; // seconds
 export default class WebsocketMainter {
   private server: WebSocketServer;
   protected store: SocketStore;
+  UnAuthWrapper?: (buffer: Buffer) => Promise<void>;
+
   constructor(server: Server) {
     // `server` is provided so that the `ws` doesn't create it's own HTTP Server for ws-upgrade
     this.server = new WebSocketServer({
@@ -33,6 +35,9 @@ export default class WebsocketMainter {
       true
     );
 
+    // FIX: Something isn't right
+    // What will happen if two concurrent connections were made
+    this.UnAuthWrapper = (buffer: Buffer) => this.handleUnAuthSocket(buffer.toString(), uuid);
     // Time to wait before closing the connection (Unauthorized connection)
     setTimeout(() => {
       const tmpSocket = this.store.getTmpSocket(uuid);
@@ -42,11 +47,10 @@ export default class WebsocketMainter {
       }
     }, 1000 * maxwait);
 
-    ws.on('message', buffer => this.handleUnAuthSocket(buffer.toString(), uuid));
+    ws.on('message', this.UnAuthWrapper);
     ws.on('error', this.handleError);
     ws.on('close', (code: number, reason: string) => {
       ws.removeAllListeners();
-      this.store.removeTmpSocket(uuid);
       this.store.removeConnection(this.getId(ws));
       Logger.info('Websocket connection closed with code: ' + code + ' reason:' + reason);
     });
@@ -60,15 +64,19 @@ export default class WebsocketMainter {
   }
 
   async handleUnAuthSocket(message: string, uuid: string) {
-    const { token } = await WsAuthSchema.parseAsync(JSON.parse(message) as z.infer<typeof WsAuthSchema>);
-    const isLegit = await verifyToken(token);
-    if (isLegit) {
-      const socket = this.store.upgradeSocket(uuid);
-      socket?.off('message', this.handleUnAuthSocket);
-      socket.on('message', buffer => {
-        this.handleMessage(buffer.toString(), uuid);
-      });
-    } else {
+    const auth = await WsAuthSchema.safeParseAsync(JSON.parse(message) as z.infer<typeof WsAuthSchema>);
+    if (auth.success) {
+      const { token } = auth.data;
+      const isLegit = await verifyToken(token);
+      if (isLegit) {
+        const socket = this.store.upgradeSocket(uuid);
+        // Removing UnAuthSocket handler and setting proper listener
+        socket?.off('message', this.UnAuthWrapper!);
+        socket.on('message', buffer => {
+          this.handleMessage(buffer.toString(), uuid);
+        });
+        return;
+      }
       this.sendMessage(
         uuid,
         {
@@ -76,11 +84,15 @@ export default class WebsocketMainter {
         },
         true
       );
+    } else {
+      this.sendMessage(uuid, {
+        error: auth.error
+      });
     }
   }
   // TODO
   handleError() {}
-  
+
   sendMessage(uuid: string, content: string | Record<string, unknown> | Buffer, useTmpStore: boolean = false): boolean {
     const socket = useTmpStore ? this.store.getTmpSocket(uuid) : this.store.getConnection(uuid);
     if (!socket) return false;
@@ -95,7 +107,7 @@ export default class WebsocketMainter {
     return 'theid';
   }
 }
-
+// TODO: Make this later
 async function verifyToken(token: string) {
   return !!token;
 }
