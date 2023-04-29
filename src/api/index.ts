@@ -1,18 +1,15 @@
 import { Router } from 'express';
-import { isAuth, isInvalidMethod } from './middlewares';
+import { isInvalidMethod } from './middlewares';
 import { loginRoute, singupRoute } from './routes';
-import { noop, HttpCodes, stableApiVersion, cookieName } from '../Constants';
+import { stableApiVersion } from '../Constants';
 
 const apiRoute = Router();
 const routePrefix = `/v${stableApiVersion}`;
 apiRoute.use(routePrefix + '/login', loginRoute);
-apiRoute.use(routePrefix + '/v1/signup', singupRoute);
+apiRoute.use(routePrefix + '/signup', singupRoute);
 
-// Temporary (hopefully)
-apiRoute.get('/v1/logout', isAuth, (req, res) => {
-  req.session.destroy(noop);
-  res.clearCookie(cookieName).sendStatus(HttpCodes.OK);
-});
+// Client side
+// apiRoute.get(routePrefix + '/logout', isAuth, (req, res) => {});
 
 apiRoute.all('/', isInvalidMethod);
 export default apiRoute;
