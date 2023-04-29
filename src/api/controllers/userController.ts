@@ -1,5 +1,4 @@
 import bcrypt from 'bcrypt';
-import { ObjectId } from 'mongodb';
 import User from '../../models/User';
 import { isValidUsername } from '../../lib';
 import { DatabaseError, IntegrityFailure, InvalidCredential, InvalidUsername } from '../errors';
@@ -8,7 +7,6 @@ const createUser = async (username: string, hashPass: string): Promise<string | 
   if (!isValidUsername(username)) throw new InvalidUsername(`${username} is not allowed.`);
   try {
     const user = await User.insertOne({
-      _id: new ObjectId(1),
       username,
       passwordHash: hashPass
     });
