@@ -6,7 +6,8 @@ import type { Request, Response, NextFunction } from 'express';
  * middleware to make sure the user is logged in
  */
 const isAuth = (req: Request, res: Response, next: NextFunction): void => {
-  if (!req.session.userId) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
     res.status(HttpCodes.UNAUTHORIZED).send(
       sendResponse(
         {
