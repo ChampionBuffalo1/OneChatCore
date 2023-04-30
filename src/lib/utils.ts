@@ -1,4 +1,9 @@
+import jwt from 'jsonwebtoken';
 import { promisify } from 'node:util';
+import { randomUUID } from 'node:crypto';
+import { redis } from './createConnection';
+import type { Payload } from '../typings';
+import { JwtSecret, maxTokenAge, redisPrefix } from '../Constants';
 
 const sleep = promisify(setTimeout);
 
@@ -24,4 +29,22 @@ const expBackOff = (k: number): number => {
   return Math.max(tp * 2, r * tp);
 };
 
-export { sleep, range, isValidUsername, expBackOff };
+const generateJwt = async (payload: Omit<Payload, 'key'>): Promise<string> => {
+  const uuid = randomUUID().substring(0, 20);
+  // Time in seconds
+  await redis?.set(redisPrefix + uuid, JSON.stringify(payload), 'EX', maxTokenAge / 1000);
+
+  const token = jwt.sign(
+    {
+      key: uuid,
+      data: payload.data
+    },
+    JwtSecret,
+    {
+      expiresIn: maxTokenAge
+    }
+  );
+  return token;
+};
+
+export { sleep, range, isValidUsername, expBackOff, generateJwt };
