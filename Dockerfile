@@ -19,14 +19,14 @@ WORKDIR /app
 ENV NODE_ENV production
 
 RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 APIServer 
-USER api
+RUN adduser --system --uid 1001 core 
+USER core
 
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/.env.example ./.env.example
 COPY --from=builder /app/package.json .
 
-COPY --from=builder --chown=api:nodejs /app/dist ./dist
-COPY --from=builder --chown=api:nodejs /app/logs ./logs
+COPY --from=builder --chown=core:nodejs /app/dist ./dist
+COPY --from=builder --chown=core:nodejs /app/logs ./logs
 
 CMD ["node", "."]

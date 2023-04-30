@@ -8,3 +8,4 @@ node_modules
 .dockerignore
 docker-compose*
 npm-debug.log
+test/**
