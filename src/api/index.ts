@@ -8,8 +8,5 @@ const routePrefix = `/v${stableApiVersion}`;
 apiRoute.use(routePrefix + '/login', loginRoute);
 apiRoute.use(routePrefix + '/signup', singupRoute);
 
-// Client side
-// apiRoute.get(routePrefix + '/logout', isAuth, (req, res) => {});
-
 apiRoute.all('/', isInvalidMethod);
 export default apiRoute;
