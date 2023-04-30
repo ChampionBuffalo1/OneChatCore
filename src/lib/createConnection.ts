@@ -2,7 +2,7 @@ import Redis from 'ioredis';
 import Logger from './Logger';
 import { expBackOff } from './utils';
 import { Db, MongoClient } from 'mongodb';
-import { mongoURL, redisURL, MINUTE, maxRetries, defaultDelay, databaseName } from '../Constants';
+import { mongoURL, redisURL, maxRetries, defaultDelay, databaseName } from '../Constants';
 
 let retryCount = 1;
 let redis: Redis | undefined;
@@ -44,9 +44,7 @@ const createMongoConnection = (): Promise<void> =>
         maxPoolSize: 100,
         retryWrites: true,
         connectTimeoutMS: 1000 * 10,
-        heartbeatFrequencyMS: 1000 * 30,
-        keepAlive: true,
-        keepAliveInitialDelay: MINUTE
+        heartbeatFrequencyMS: 1000 * 30
       });
       // Cannot keep the server alive without having the connection to mongodb
       if (retryCount > maxRetries) process.exit(0);
@@ -70,7 +68,7 @@ const createMongoConnection = (): Promise<void> =>
     }
   });
 
-export { createMongoConnection, createRedisConnection, DbInstance };
+export { createMongoConnection, createRedisConnection, DbInstance, redis };
 
 function handleError(err: Error | { code?: number }) {
   // Authentication error
@@ -84,5 +82,5 @@ function handleError(err: Error | { code?: number }) {
 
   const retryTime = expBackOff(retryCount);
   setTimeout(createMongoConnection, retryTime);
-  Logger.info(`Re-connecting to MongoDB in ${retryTime} seconds.`);
+  Logger.info(`Re-connecting to MongoDB in ${Math.round(retryTime / 1000)} seconds.`);
 }
