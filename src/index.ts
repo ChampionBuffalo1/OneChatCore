@@ -5,13 +5,13 @@ import express from 'express';
 import apiRoute from './api';
 import Logger from './lib/Logger';
 import { createServer } from 'node:http';
-import { createMongoConnection } from './lib';
 import { PORT, HttpCodes } from './Constants';
 import WebsocketMainter from './lib/wsHandler';
 import { attachSession } from './api/middlewares';
+import { createMongoConnection, createRedisConnection } from './lib';
 
 (async (): Promise<void> => {
-  await createMongoConnection();
+  await Promise.allSettled([createMongoConnection(), createRedisConnection()]);
 
   const app = express();
   const server = createServer(app);
