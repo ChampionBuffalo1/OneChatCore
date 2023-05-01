@@ -31,7 +31,7 @@ const verifyUser = async (username: string, plainPassword: string): Promise<stri
 
   const isValidPass = await bcrypt.compare(plainPassword, user.passwordHash);
   if (!isValidPass) throw new InvalidCredential('Incorrect username or Password');
-  return user.id;
+  return user._id.toString();
 };
 // This method can be removed and the unique functionality can be implemented by hasing username
 // and setting _id to be the hash of the username
