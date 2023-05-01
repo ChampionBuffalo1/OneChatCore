@@ -14,7 +14,7 @@ const attachSession = async (req: Request, res: Response, next: NextFunction): P
       req.payload = payload;
     }
   } catch (err) {
-    Logger.error(err);
+    Logger.error(`Session error: ${(err as Error).message}`);
     if ((err as Error).name === 'TokenExpiredError' || (err as Error).name === 'JsonWebTokenError') {
       res.status(HttpCodes.FORBIDDEN).send(
         sendResponse({
