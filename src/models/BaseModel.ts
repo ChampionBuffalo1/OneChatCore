@@ -6,7 +6,9 @@ import type {
   FindCursor,
   Collection,
   UpdateResult,
+  DeleteResult,
   UpdateOptions,
+  DeleteOptions,
   InsertManyResult,
   InsertOneResult
 } from 'mongodb';
@@ -14,7 +16,7 @@ import type {
 const colMap: Map<string, Collection> = new Map();
 
 export class BaseModel<T extends Record<string, unknown>> {
-  public static registerCollection(col_name: string): Collection {
+  private static registerCollection(col_name: string): Collection {
     if (!DbInstance) throw new Error('DbInstance is not initialized');
     const collection = DbInstance.collection(col_name);
     colMap.set(col_name, collection);
@@ -62,6 +64,18 @@ export class BaseModel<T extends Record<string, unknown>> {
     update: T,
     opts?: UpdateOptions
   ): Promise<UpdateResult> => BaseModel.getCollection(colName).updateMany(query, update, opts);
+
+  protected static _deleteOne = <T extends Record<string, unknown>>(
+    colName: string,
+    query: T,
+    opts?: DeleteOptions
+  ): Promise<DeleteResult> => BaseModel.getCollection(colName).deleteOne(query, opts);
+
+  protected static _deleteMany = <T extends Record<string, unknown>>(
+    colName: string,
+    query: T,
+    opts?: DeleteOptions
+  ): Promise<DeleteResult> => BaseModel.getCollection(colName).deleteMany(query, opts);
 
   protected static _exists = <T extends Record<string, unknown>>(colName: string, query: T): boolean =>
     !!BaseModel._findOne(colName, query, '_id');
