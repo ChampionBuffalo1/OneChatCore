@@ -4,8 +4,6 @@ import { COLLECTION_NAME } from '../Constants';
 
 const collectionName = COLLECTION_NAME.USER;
 
-BaseModel.registerCollection(collectionName);
-
 export default class User extends BaseModel<IUser> {
   constructor(private data: IUser) {
     super(collectionName);
