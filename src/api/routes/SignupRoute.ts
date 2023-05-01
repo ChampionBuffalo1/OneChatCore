@@ -1,19 +1,20 @@
 import bcrypt from 'bcrypt';
 import { Router } from 'express';
-import { PasswordSchema, sendResponse } from '../../lib';
+import Logger from '../../lib/Logger';
 import { isInvalidMethod } from '../middlewares';
 import { DatabaseError, InvalidUsername } from '../errors';
+import { PasswordSchema, generateJwt, sendResponse } from '../../lib';
 import { createUser, hasUsername } from '../controllers/userController';
 import { ERROR_CODES, HttpCodes, redirectUriKey, bcrpytSaltRounds } from '../../Constants';
 
 const singupRoute = Router();
 
-singupRoute.put('/', async (req, res) => {
+singupRoute.post('/', async (req, res) => {
   const username = req.body['username'];
   const password = req.body['password'];
   try {
-    if (!username || !password) {
-      res.status(HttpCodes.BAD_REQUEST).send(
+    if (!username || !password)
+      return res.status(HttpCodes.BAD_REQUEST).send(
         sendResponse(
           {
             code: ERROR_CODES.INCOMPLETE_FORM,
@@ -22,10 +23,9 @@ singupRoute.put('/', async (req, res) => {
           true
         )
       );
-      return;
-    }
-    if (await hasUsername(username)) {
-      res.status(HttpCodes.NOT_ACCEPTABLE).send(
+
+    if (await hasUsername(username))
+      return res.status(HttpCodes.NOT_ACCEPTABLE).send(
         sendResponse(
           {
             code: ERROR_CODES.USERNAME_ALREADY_TAKEN,
@@ -34,8 +34,7 @@ singupRoute.put('/', async (req, res) => {
           true
         )
       );
-      return;
-    }
+
     const passmatch = await PasswordSchema.safeParseAsync(password);
     if (!passmatch.success) {
       res.status(HttpCodes.NOT_ACCEPTABLE).send(
@@ -50,13 +49,20 @@ singupRoute.put('/', async (req, res) => {
     }
     const hashPass = await bcrypt.hash(password, bcrpytSaltRounds);
     const id = await createUser(username, hashPass);
-    req.session.userId = id;
+
+    const token = await generateJwt({
+      data: {
+        id
+      }
+    });
+    const resp = {
+      success: true,
+      token
+    };
     const redirectUrl = req.query[redirectUriKey];
-    if (redirectUrl && typeof redirectUrl === 'string') {
-      res.status(HttpCodes.OK).redirect(redirectUrl);
-      return;
-    }
-    res.status(HttpCodes.OK).send(sendResponse({ success: true }));
+    if (redirectUrl && typeof redirectUrl === 'string')
+      return res.status(HttpCodes.OK).send(resp).redirect(redirectUrl);
+    res.status(HttpCodes.OK).send(resp);
   } catch (err) {
     if (err instanceof InvalidUsername) {
       res.status(HttpCodes.BAD_REQUEST).send(
@@ -70,6 +76,7 @@ singupRoute.put('/', async (req, res) => {
         )
       );
     } else if (err instanceof DatabaseError) {
+      Logger.error(`Database error at Signup route: ${(err as Error).message}`);
       res.status(HttpCodes.INTERNAL_ERROR).send(
         sendResponse(
           {
@@ -80,6 +87,8 @@ singupRoute.put('/', async (req, res) => {
           true
         )
       );
+    } else {
+      Logger.error(`Singup Route error: ${(err as Error).message}`);
     }
   }
 });

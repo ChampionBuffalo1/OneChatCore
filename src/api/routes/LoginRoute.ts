@@ -1,9 +1,10 @@
 import { Router } from 'express';
-import { sendResponse } from '../../lib';
-import { HttpCodes, ERROR_CODES, redirectUriKey } from '../../Constants';
+import Logger from '../../lib/Logger';
+import { generateJwt, sendResponse } from '../../lib';
 import { verifyUser } from '../controllers/userController';
 import { InvalidCredential } from '../errors/ValidationErrors';
 import { isInvalidMethod } from '../middlewares/isInvalidMethods';
+import { HttpCodes, ERROR_CODES, redirectUriKey } from '../../Constants';
 
 const loginRoute = Router();
 
@@ -11,8 +12,8 @@ loginRoute.post('/', async (req, res) => {
   const username = req.body['username'];
   const password = req.body['password'];
   try {
-    if (!username || !password) {
-      res.status(HttpCodes.BAD_REQUEST).send(
+    if (!username || !password)
+      return res.status(HttpCodes.BAD_REQUEST).send(
         sendResponse(
           {
             code: ERROR_CODES.INCOMPLETE_FORM,
@@ -21,11 +22,9 @@ loginRoute.post('/', async (req, res) => {
           true
         )
       );
-      return;
-    }
-    // Incase we already have a session
-    if (req.session.userId) {
-      res.status(HttpCodes.FORBIDDEN).send(
+
+    if (req.payload?.data?.id)
+      return res.status(HttpCodes.FORBIDDEN).send(
         sendResponse(
           {
             code: ERROR_CODES.ALREADY_LOGGEDIN,
@@ -34,11 +33,10 @@ loginRoute.post('/', async (req, res) => {
           true
         )
       );
-      return;
-    }
+
     const userId = await verifyUser(username, password);
     if (!userId) {
-      res.status(HttpCodes.FORBIDDEN).send(
+      return res.status(HttpCodes.FORBIDDEN).send(
         sendResponse(
           {
             code: ERROR_CODES.USER_DOESNT_EXISTS,
@@ -47,26 +45,37 @@ loginRoute.post('/', async (req, res) => {
           true
         )
       );
-      return;
     }
-    req.session.userId = userId;
+
+    const token = await generateJwt({
+      data: {
+        id: userId
+      }
+    });
+
+    const resp = {
+      sucess: true,
+      token
+    };
+
     const redirectUrl = req.query[redirectUriKey];
-    if (redirectUrl && typeof redirectUrl === 'string') {
-      res.status(HttpCodes.OK).redirect(redirectUrl);
-      return;
-    }
-    res.status(HttpCodes.OK).send();
+    if (redirectUrl && typeof redirectUrl === 'string')
+      return res.status(HttpCodes.OK).send(resp).redirect(redirectUrl);
+    res.status(HttpCodes.OK).send(resp);
   } catch (err) {
     if (err instanceof InvalidCredential) {
       res.status(HttpCodes.FORBIDDEN).send(
         sendResponse(
           {
             code: ERROR_CODES.INVALID_CRED,
-            name: 'Invalid Credentials'
+            name: err.message
           },
           true
         )
       );
+    } else {
+      // Jwt.sign can throw error
+      Logger.error(`Login Error: ${(err as Error).message}`);
     }
   }
 });
