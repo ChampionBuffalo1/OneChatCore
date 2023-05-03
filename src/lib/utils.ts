@@ -13,7 +13,8 @@ const sleep = promisify(setTimeout);
  * @param username The username to check
  * @returns boolean
  */
-const isValidUsername = (username: string): boolean => !username?.includes('@=+`');
+const invalidChar = ['@', '=', '+', '`'];
+const isValidUsername = (username: string): boolean => !invalidChar.includes(username);
 
 const range = (min: number, max: number) => {
   min = Math.ceil(min);
