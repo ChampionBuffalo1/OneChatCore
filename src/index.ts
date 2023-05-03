@@ -1,4 +1,5 @@
 import 'dotenv-safe/config';
+import './lib/createConnection';
 import '@total-typescript/ts-reset';
 import cors from 'cors';
 import express from 'express';
@@ -8,11 +9,8 @@ import { createServer } from 'node:http';
 import { PORT, HttpCodes } from './Constants';
 import WebsocketMainter from './lib/wsHandler';
 import { attachSession } from './api/middlewares';
-import { createMongoConnection, createRedisConnection } from './lib';
 
 (async (): Promise<void> => {
-  await Promise.allSettled([createMongoConnection(), createRedisConnection()]);
-
   const app = express();
   const server = createServer(app);
   app.disable('etag');
