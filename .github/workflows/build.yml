@@ -18,8 +18,8 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node_version }}
-          cache: 'npm'
+          cache: 'yarn'
       - name: Building Backend 
         run: |
-          npm ci
-          npm run build
+          yarn install --ignore-optional --frozen-lockfile
+          yarn build
