@@ -3,7 +3,6 @@ export const isProd: boolean = process.env.NODE_ENV === 'production';
 export const stableApiVersion = 1;
 export const JwtSecret: string = process.env.JWT_SECRET!;
 export const redisPrefix: string = process.env.REDIS_PREFIX || 'sess:';
-export const databaseName: string = process.env.MONGO_DB_NAME || 'onechat';
 export const maxTokenAge: number = 1000 * 60 * 60 * 24 * 7; // 7 days
 
 export const maxPassLen = 60;
@@ -14,18 +13,9 @@ export const redisURL: string = process.env.REDIS_URL!;
 export const mongoURL: string = process.env.MONGO_URL!;
 export const PORT: number = +process.env.API_PORT! || 3001;
 export const redirectUriKey = 'redirect';
-// MongoDB Collection name
 
-// const enum will replace all instance of enum with the variable name at compile time
-export const enum COLLECTION_NAME {
-  USER = 'user',
-  MESSAGE = 'message',
-  GROUP_INFO = 'group'
-}
-
-// Max delay time for reconnecting to redis & mongo client (in ms)
+// Max delay time for reconnecting to redis (in ms)
 export const defaultDelay: number = 1000 * 60 * 10;
-export const MINUTE: number = 1000 * 60 * 60;
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 export const noop = () => {};
