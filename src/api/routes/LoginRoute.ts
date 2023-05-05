@@ -73,10 +73,20 @@ loginRoute.post('/', async (req, res) => {
           true
         )
       );
-    } else {
-      // Jwt.sign can throw error
-      Logger.error(`Login Error: ${(err as Error).message}`);
     }
+    // Jwt.sign can throw error
+    if ((err as Error).name === 'TokenExpiredError' || (err as Error).name === 'JsonWebTokenError') {
+      res.status(HttpCodes.INTERNAL_ERROR).send(
+        sendResponse(
+          {
+            code: HttpCodes.INTERNAL_ERROR,
+            name: 'Token Signing Error'
+          },
+          true
+        )
+      );
+    }
+    Logger.error(`Login Error: ${(err as Error).message}`);
   }
 });
 

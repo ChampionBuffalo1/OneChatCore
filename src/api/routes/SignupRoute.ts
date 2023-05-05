@@ -87,6 +87,16 @@ singupRoute.post('/', async (req, res) => {
           true
         )
       );
+    } else if ((err as Error).name === 'TokenExpiredError' || (err as Error).name === 'JsonWebTokenError') {
+      res.status(HttpCodes.INTERNAL_ERROR).send(
+        sendResponse(
+          {
+            code: HttpCodes.INTERNAL_ERROR,
+            name: 'Token Signing Error'
+          },
+          true
+        )
+      );
     } else {
       Logger.error(`Singup Route error: ${(err as Error).message}`);
     }
