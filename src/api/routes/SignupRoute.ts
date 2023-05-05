@@ -5,7 +5,7 @@ import { isInvalidMethod } from '../middlewares';
 import { DatabaseError, InvalidUsername } from '../errors';
 import { PasswordSchema, generateJwt, sendResponse } from '../../lib';
 import { createUser, hasUsername } from '../controllers/userController';
-import { ERROR_CODES, HttpCodes, redirectUriKey, bcrpytSaltRounds } from '../../Constants';
+import { ERROR_CODES, HttpCodes, redirectUriKey, bcryptSaltRounds } from '../../Constants';
 
 const singupRoute = Router();
 
@@ -47,7 +47,7 @@ singupRoute.post('/', async (req, res) => {
         )
       );
     }
-    const hashPass = await bcrypt.hash(password, bcrpytSaltRounds);
+    const hashPass = await bcrypt.hash(password, bcryptSaltRounds);
     const id = await createUser(username, hashPass);
 
     const token = await generateJwt({
