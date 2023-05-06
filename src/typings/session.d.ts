@@ -7,15 +7,15 @@ interface KeyPayload {
 
 export interface JwtPayload extends KeyPayload {
   data: {
-    userId: string;
+    userId?: string;
   };  
-  secret: Record<string, unknown>;
+  secret?: Record<string, unknown>;
 }
 
 declare global {
   namespace Express {
     interface Request {
-      payload: KeyPayload;
+      payload: JwtPayload;
     }
   }
 }

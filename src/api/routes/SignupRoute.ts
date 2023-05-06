@@ -48,11 +48,11 @@ singupRoute.post('/', async (req, res) => {
       );
     }
     const hashPass = await bcrypt.hash(password, bcryptSaltRounds);
-    const id = await createUser(username, hashPass);
+    const userId = await createUser(username, hashPass);
 
     const token = await generateJwt({
       data: {
-        id
+        userId
       }
     });
     const resp = {

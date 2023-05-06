@@ -23,7 +23,7 @@ loginRoute.post('/', async (req, res) => {
         )
       );
 
-    if (req.payload?.data?.id)
+    if (req.payload?.data?.userId)
       return res.status(HttpCodes.FORBIDDEN).send(
         sendResponse(
           {
@@ -34,22 +34,12 @@ loginRoute.post('/', async (req, res) => {
         )
       );
 
+    // Throws InvalidCredential if user is not found or password is incorrect
     const userId = await verifyUser(username, password);
-    if (!userId) {
-      return res.status(HttpCodes.FORBIDDEN).send(
-        sendResponse(
-          {
-            code: ERROR_CODES.USER_DOESNT_EXISTS,
-            name: 'User not found'
-          },
-          true
-        )
-      );
-    }
 
     const token = await generateJwt({
       data: {
-        id: userId
+        userId
       }
     });
 
