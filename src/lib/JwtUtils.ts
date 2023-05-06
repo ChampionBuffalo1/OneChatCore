@@ -1,10 +1,10 @@
 import jwt from 'jsonwebtoken';
 import { randomUUID } from 'node:crypto';
 import { redis } from './createConnection';
-import type { Payload } from '../typings';
+import type { JwtPayload } from '../typings';
 import { JwtSecret, maxTokenAge, redisPrefix } from '../Constants';
 
-const generateJwt = async (payload: Omit<Payload, 'key'>): Promise<string> => {
+const generateJwt = async (payload: Omit<JwtPayload, 'key'>): Promise<string> => {
   const uuid = randomUUID().substring(0, 20);
   // Time in seconds
   await redis?.set(redisPrefix + uuid, JSON.stringify(payload), 'EX', maxTokenAge / 1000);
@@ -22,16 +22,19 @@ const generateJwt = async (payload: Omit<Payload, 'key'>): Promise<string> => {
   return token;
 };
 
-const getJwtPayload = async <T extends { key: string } = Payload>(
-  token: string,
-  getSecret: boolean = false
-): Promise<T> => {
+const getJwtPayload = async (token: string, getSecret: boolean = false): Promise<JwtPayload> => {
   try {
-    const jwtDecoded = jwt.verify(token, JwtSecret) as T;
+    const jwtDecoded = jwt.verify(token, JwtSecret) as JwtPayload;
     if (getSecret) {
       const key = jwtDecoded.key;
       const secretPayload = await redis?.get(redisPrefix + key);
-      if (secretPayload) return JSON.parse(secretPayload) as T;
+      if (secretPayload) {
+        const json = JSON.parse(secretPayload) as Omit<JwtPayload, 'key'>;
+        return {
+          key,
+          ...json
+        };
+      }
     }
     return jwtDecoded;
   } catch (err) {
@@ -40,9 +43,9 @@ const getJwtPayload = async <T extends { key: string } = Payload>(
         cause: 'Invalid JWT Payload'
       });
   }
-  // Never reached
-  // if JwtError is thrown, the function will exit
-  return undefined as unknown as T;
+
+  // Never reached, if JwtError is thrown, the function will exit
+  return undefined as never;
 };
 
 export { generateJwt, getJwtPayload };
