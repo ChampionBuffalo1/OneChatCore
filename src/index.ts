@@ -7,8 +7,8 @@ import apiRoute from './api';
 import Logger from './lib/Logger';
 import { createServer } from 'node:http';
 import { PORT, HttpCodes } from './Constants';
-import WebsocketMainter from './lib/wsHandler';
 import { attachSession } from './api/middlewares';
+import { createSocketServer } from './websocket';
 
 (async (): Promise<void> => {
   const app = express();
@@ -22,7 +22,7 @@ import { attachSession } from './api/middlewares';
 
   app.use('/api', apiRoute);
   app.get('/', (_, res) => res.sendStatus(HttpCodes.OK));
-  new WebsocketMainter(server);
+  createSocketServer(server);
 
   server.listen(PORT, () => Logger.info(`Listening on port: ${PORT}`));
 

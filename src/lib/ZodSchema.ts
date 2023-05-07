@@ -15,11 +15,4 @@ const PasswordSchema = z
     'Password must contain a lowercase, uppercase, and a numerical digit'
   );
 
-const WsMessageSchema = z.object({
-  content: z.string(),
-  images: z.optional(z.array(z.string()))
-});
-
-type WsMessageSchema = z.infer<typeof WsMessageSchema>;
-
-export { WsAuthSchema, WsMessageSchema, PasswordSchema };
+export { WsAuthSchema, PasswordSchema };
