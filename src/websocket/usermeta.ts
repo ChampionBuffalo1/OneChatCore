@@ -1,4 +1,4 @@
-import { prisma } from "../lib";
+import { prisma } from '../lib';
 
 async function getUserMetadata(id: string) {
   const metadata = await prisma.user.findUnique({
@@ -6,8 +6,17 @@ async function getUserMetadata(id: string) {
       id
     },
     select: {
-      username: true,
-      Group: true
+      id: true,
+      username: true,      
+      Group: {
+        select: {
+          id: true,
+          messages: {
+            // Get last 100 messages
+            take: 100
+          }
+        }
+      }
     }
   });
   return metadata;
