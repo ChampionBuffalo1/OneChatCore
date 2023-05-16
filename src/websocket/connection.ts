@@ -7,6 +7,7 @@ import { handleSocketError } from './error';
 import { WsMessageSchema } from './zschema';
 import { handleMessage } from './message';
 import { getUserMetadata } from './usermeta';
+import { setGroupTokens } from './redisUtil';
 
 const maxwait = 30; // in seconds
 
@@ -51,7 +52,7 @@ async function handshake(message: string, uuid: string) {
           message: 'Authenticated successfully',
           data: metadata
         });
-        
+        metadata?.Group.forEach(async group => await setGroupTokens(group.id, token));
         // Removing old tmp listeners
         //  0th listener is setup by `ws` package itself
         const listener = socket.listeners('close')[1] as (this: WebSocket, ...args: unknown[]) => void;
