@@ -4,6 +4,7 @@ import { PrismaClient } from '@prisma/client';
 import { redisURL, maxRetries, defaultDelay } from '../Constants';
 
 const prisma = new PrismaClient();
+prisma.$connect().then(() => Logger.info('Prisma client connected.'));
 
 let redis: Redis | undefined = new Redis(redisURL, {
   // lazyConnect: true,
