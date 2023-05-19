@@ -14,6 +14,10 @@ model User {
   id           String   @id @default(auto()) @map("_id") @db.ObjectId
   username     String   @unique
   passwordHash String
+<<<<<<< HEAD
+=======
+  avatarUrl          String?
+>>>>>>> dfc5e7c (Somewhat fixed the prisma schema)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   Group        Group[]  @relation("createdBy")
@@ -47,11 +51,19 @@ model Channel {
 model Message {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   text      String   @db.String
+<<<<<<< HEAD
   sentBy    User    @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   Channel  Channel? @relation(fields: [channelId], references: [id])
+=======
+  sentBy    User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  Channel   Channel? @relation(fields: [channelId], references: [id])
+>>>>>>> dfc5e7c (Somewhat fixed the prisma schema)
   channelId String?  @db.ObjectId
   userId    String   @db.ObjectId
 }
