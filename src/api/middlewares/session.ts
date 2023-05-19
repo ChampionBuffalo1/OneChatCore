@@ -5,7 +5,7 @@ import { HttpCodes } from '../../Constants';
 const attachSession = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const jwtToken = req.headers.authorization;
   try {
-    if (jwtToken) 
+    if (jwtToken)
       req.payload = await getJwtPayload(jwtToken, true);
   } catch (err) {
     Logger.error(`Session error: ${(err as Error).message}`);

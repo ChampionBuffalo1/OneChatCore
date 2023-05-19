@@ -11,32 +11,6 @@ import { setGroupTokens, deleteGroupTokens } from './redisUtil';
 
 const maxwait = 30; // in seconds
 
-function handleConnection(ws: WebSocket) {
-  const uuid = randomUUID().substring(0, 16);
-  store.setTmpConnection(uuid, ws);
-  sendMessage(
-    uuid,
-    {
-      time: maxwait,
-      message: `Verify with token within ${maxwait} seconds`
-    },
-    true
-  );
-
-  // Time to wait before closing the connection (Unauthorized connection)
-  setTimeout(() => {
-    const tmpSocket = store.getTmpSocket(uuid);
-    if (tmpSocket) {
-      tmpSocket.close(manualClose, 'Authentication timeout');
-      store.removeTmpSocket(uuid);
-    }
-  }, 1000 * maxwait);
-
-  ws.on('message', buffer => handshake(buffer.toString(), uuid));
-  ws.on('error', handleSocketError);
-  ws.on('close', () => store.removeTmpSocket(uuid));
-}
-
 async function handshake(message: string, uuid: string) {
   try {
     const authSchema = await WsAuthSchema.spa(JSON.parse(message));
@@ -58,7 +32,7 @@ async function handshake(message: string, uuid: string) {
         const listener = socket.listeners('close')[1] as (this: WebSocket, ...args: unknown[]) => void;
         socket.off('close', listener);
         socket.removeAllListeners('message');
-        
+
         socket.on('message', async (buffer: Buffer) => {
           const messageSchema = await WsMessageSchema.spa(JSON.parse(buffer.toString()));
           if (messageSchema.success) handleMessage(messageSchema.data, token);
@@ -93,4 +67,30 @@ async function handshake(message: string, uuid: string) {
   }
 }
 
-export { handleConnection, handshake };
+function handleConnection(ws: WebSocket) {
+  const uuid = randomUUID().substring(0, 16);
+  store.setTmpConnection(uuid, ws);
+  sendMessage(
+    uuid,
+    {
+      time: maxwait,
+      message: `Verify with token within ${maxwait} seconds`
+    },
+    true
+  );
+
+  // Time to wait before closing the connection (Unauthorized connection)
+  setTimeout(() => {
+    const tmpSocket = store.getTmpSocket(uuid);
+    if (tmpSocket) {
+      tmpSocket.close(manualClose, 'Authentication timeout');
+      store.removeTmpSocket(uuid);
+    }
+  }, 1000 * maxwait);
+
+  ws.on('message', buffer => handshake(buffer.toString(), uuid));
+  ws.on('error', handleSocketError);
+  ws.on('close', () => store.removeTmpSocket(uuid));
+}
+
+export { handleConnection };

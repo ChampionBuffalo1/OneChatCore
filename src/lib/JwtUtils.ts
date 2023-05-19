@@ -22,7 +22,7 @@ const generateJwt = async (payload: Omit<JwtPayload, 'key'>): Promise<string> =>
   return token;
 };
 
-const getJwtPayload = async (token: string, getSecret: boolean = false): Promise<JwtPayload> => {
+const getJwtPayload = async (token: string, getSecret = false): Promise<JwtPayload> => {
   try {
     const jwtDecoded = jwt.verify(token, JwtSecret) as JwtPayload;
     if (getSecret) {
