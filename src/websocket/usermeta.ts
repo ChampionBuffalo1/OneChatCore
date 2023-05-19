@@ -7,13 +7,17 @@ async function getUserMetadata(id: string) {
     },
     select: {
       id: true,
-      username: true,      
+      username: true,
       Group: {
         select: {
           id: true,
-          messages: {
-            // Get last 100 messages
-            take: 100
+          channels: {
+            select: {
+              id: true,
+              messages: {
+                take: 50
+              }
+            }
           }
         }
       }
