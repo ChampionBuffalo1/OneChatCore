@@ -11,36 +11,47 @@ datasource db {
 }
 
 model User {
-  id           String    @id @default(auto()) @map("_id") @db.ObjectId
-  username     String    @unique
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  username     String   @unique
   passwordHash String
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  Group        Group[]
-  Message      Message[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  Group        Group[]  @relation("createdBy")
+
+  // TODO: Fix the one-to-many self realtionship bug when trying to add a friends field 
+  // friends  User[]   @relation("Friendship")
+  // User     User?    @relation("Friendship", fields: [friendId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  // friendId String[] @db.ObjectId
+  Message Message[]
 }
 
 model Group {
-  id        String    @id @default(auto()) @map("_id") @db.ObjectId
-  name      String
-  // Owner (One to One)
-  owner     User      @relation(fields: [ownerId], references: [id])
-  ownerId   String    @db.ObjectId
-  // (Many to One)
-  messages  Message[] @relation("groupMessages")
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  description String    @default("")
+  channels    Channel[]
+  // Owner
+  createdBy   User      @relation(fields: [userId], references: [id], name: "createdBy")
+  userId      String    @db.ObjectId
+}
+
+model Channel {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  description String    @default("")
+  messages    Message[]
+  Group       Group?    @relation(fields: [groupId], references: [id])
+  groupId     String?   @db.ObjectId
 }
 
 model Message {
-  id          String        @id @default(auto()) @map("_id") @db.ObjectId
-  text        String
-  // URL string array
-  attachments String[]
-  sender      User          @relation(fields: [senderId], references: [id])
-  senderId    String        @db.ObjectId
-  group       Group         @relation("groupMessages", fields: [groupId], references: [id])
-  groupId     String        @db.ObjectId
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  text      String   @db.String
+  sentBy    User    @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  Channel  Channel? @relation(fields: [channelId], references: [id])
+  channelId String?  @db.ObjectId
+  userId    String   @db.ObjectId
 }
