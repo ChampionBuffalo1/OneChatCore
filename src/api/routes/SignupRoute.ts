@@ -5,16 +5,16 @@ import { isInvalidMethod } from '../middlewares';
 import { DatabaseError, InvalidUsername } from '../errors';
 import { PasswordSchema, generateJwt, sendResponse } from '../../lib';
 import { createUser, hasUsername } from '../controllers/userController';
-import { ERROR_CODES, HttpCodes, redirectUriKey, bcryptSaltRounds } from '../../Constants';
+import { ERROR_CODES, HttpCodes, bcryptSaltRounds } from '../../Constants';
 
 const singupRoute = Router();
 
-singupRoute.post('/', async (req, res) => {
+singupRoute.post('/', async (req, res): Promise<void> => {
   const username = req.body['username'];
   const password = req.body['password'];
   try {
-    if (!username || !password)
-      return res.status(HttpCodes.BAD_REQUEST).send(
+    if (!username || !password) {
+      res.status(HttpCodes.BAD_REQUEST).send(
         sendResponse(
           {
             code: ERROR_CODES.INCOMPLETE_FORM,
@@ -23,9 +23,11 @@ singupRoute.post('/', async (req, res) => {
           true
         )
       );
+      return;
+    }
 
-    if (await hasUsername(username))
-      return res.status(HttpCodes.NOT_ACCEPTABLE).send(
+    if (await hasUsername(username)) {
+      res.status(HttpCodes.NOT_ACCEPTABLE).send(
         sendResponse(
           {
             code: ERROR_CODES.USERNAME_ALREADY_TAKEN,
@@ -34,19 +36,23 @@ singupRoute.post('/', async (req, res) => {
           true
         )
       );
+      return;
+    }
 
     const passmatch = await PasswordSchema.safeParseAsync(password);
     if (!passmatch.success) {
       res.status(HttpCodes.NOT_ACCEPTABLE).send(
         sendResponse(
           {
-            code: ERROR_CODES.INVALID_CRED,
+            code: ERROR_CODES.ZOD_ERROR,
             name: passmatch.error
           },
           true
         )
       );
+      return;
     }
+
     const hashPass = await bcrypt.hash(password, bcryptSaltRounds);
     const userId = await createUser(username, hashPass);
 
@@ -55,13 +61,10 @@ singupRoute.post('/', async (req, res) => {
         userId
       }
     });
-    const resp = {
+    const resp = sendResponse({
       success: true,
       token
-    };
-    const redirectUrl = req.query[redirectUriKey];
-    if (redirectUrl && typeof redirectUrl === 'string')
-      return res.status(HttpCodes.OK).send(resp).redirect(redirectUrl);
+    });
     res.status(HttpCodes.OK).send(resp);
   } catch (err) {
     if (err instanceof InvalidUsername) {

@@ -21,6 +21,7 @@ export const defaultDelay: number = 1000 * 60 * 10;
 export const noop = () => {};
 
 export const enum ERROR_CODES {
+  ZOD_ERROR = 204,
   INVALID_CRED = 17,
   INCOMPLETE_FORM,
   INVALID_USERNAME,

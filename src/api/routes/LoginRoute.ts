@@ -43,10 +43,10 @@ loginRoute.post('/', async (req, res) => {
       }
     });
 
-    const resp = {
+    const resp = sendResponse({
       sucess: true,
       token
-    };
+    });
 
     const redirectUrl = req.query[redirectUriKey];
     if (redirectUrl && typeof redirectUrl === 'string')
