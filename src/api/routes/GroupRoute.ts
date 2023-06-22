@@ -6,6 +6,18 @@ import { deleteGroup } from '../controllers/groupController';
 
 const groupRoute = Router();
 
+groupRoute.get('/', isAuth, async (req, res) => {
+  const data = await prisma.user.findFirst({
+    where: {
+      id: req.payload.data.userId!
+    },
+    include: {
+      Group: true
+    }
+  });
+  res.status(200).send(data);
+});
+
 groupRoute.post('/join/:groupId', isAuth, async (req, res) => {
   const groupId = req.params.groupId;
   const data = await prisma.user.update({
