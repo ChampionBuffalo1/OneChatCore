@@ -30,20 +30,20 @@ model Group {
   id          String    @id @default(auto()) @map("_id") @db.ObjectId
   name        String
   description String    @default("")
-  channels    Channel[]
+  // channels    Channel[]
   // Owner
   createdBy   User      @relation(fields: [userId], references: [id], name: "createdBy")
   userId      String    @db.ObjectId
 }
 
-model Channel {
-  id          String    @id @default(auto()) @map("_id") @db.ObjectId
-  name        String
-  description String    @default("")
-  messages    Message[]
-  Group       Group?    @relation(fields: [groupId], references: [id])
-  groupId     String?   @db.ObjectId
-}
+//  model Channel {
+//   id          String    @id @default(auto()) @map("_id") @db.ObjectId
+//   name        String
+//   description String    @default("")
+//   messages    Message[]
+//   Group       Group?    @relation(fields: [groupId], references: [id])
+//   groupId     String?   @db.ObjectId
+// }
 
 model Message {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
@@ -52,7 +52,7 @@ model Message {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  Channel  Channel? @relation(fields: [channelId], references: [id])
-  channelId String?  @db.ObjectId
+//  Channel  Channel? @relation(fields: [channelId], references: [id])
+//  channelId String?  @db.ObjectId
   userId    String   @db.ObjectId
 }
