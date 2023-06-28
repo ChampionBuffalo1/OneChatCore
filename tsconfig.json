@@ -5,7 +5,6 @@
     "lib": ["esnext", "esnext.array", "esnext.asynciterable", "esnext.intl", "esnext.symbol"],
     "allowJs": true,
     "checkJs": true,
-    "watch": false,
     "outDir": "dist",
     "rootDir": "src",
     "strict": true,

@@ -11,12 +11,10 @@ async function getUserMetadata(id: string) {
       Group: {
         select: {
           id: true,
-          channels: {
-            select: {
-              id: true,
-              messages: {
-                take: 50
-              }
+          messages: {
+            take: 50,
+            orderBy: {
+              createdAt: 'desc'
             }
           }
         }

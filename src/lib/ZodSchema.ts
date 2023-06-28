@@ -15,4 +15,22 @@ const PasswordSchema = z
     'Password must contain a lowercase, uppercase, and a numerical digit'
   );
 
-export { WsAuthSchema, PasswordSchema };
+const userSchema = z.object({
+  username: z.string().min(3, 'Username should be greater than 3').max(20, 'Username should be less than 20'),
+  password: PasswordSchema,
+  email: z.string().email('Invalid email address'),
+  firstName: z.string().min(3, 'First name should be greater than 3').max(20, 'First name should be less than 20')
+});
+
+const channelSchema = z.object({
+  name: z.string().min(3, 'Channel name should be greater than 3').max(20, 'Channel name should be less than 20')
+});
+
+const groupSchema = z.object({
+  name: z.string().min(3, 'Group name should be greater than 3').max(20, 'Group name should be less than 20'),
+  description: z.string().max(100, 'Group description should be less than 100').optional(),
+  channels: z.array(channelSchema).optional(),
+  createdBy: userSchema
+});
+
+export { WsAuthSchema, PasswordSchema, groupSchema };

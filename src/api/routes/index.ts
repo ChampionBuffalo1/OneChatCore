@@ -1,3 +1,3 @@
 export * from './LoginRoute';
 export * from './SignupRoute';
-export * from './messageRoute';
+export * from './GroupRoute';
