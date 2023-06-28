@@ -8,7 +8,7 @@ interface KeyPayload {
 export interface JwtPayload extends KeyPayload {
   data: {
     userId?: string;
-  };  
+  };
   secret?: Record<string, unknown>;
 }
 
