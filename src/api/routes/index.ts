@@ -1,3 +1,3 @@
-export * from './LoginRoute';
-export * from './SignupRoute';
-export * from './GroupRoute';
+export * from './login';
+export * from './group';
+export * from './signup';
