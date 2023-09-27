@@ -1,32 +1,48 @@
 import { prisma } from '../../lib';
+import { Request, Response } from 'express';
+import { deleteGroup } from '../../lib/helpers/groupHelper';
 
-const createGroup = async (ownerId: string, name: string, description?: string) => {
-  const data = await prisma.group.create({
+async function getGroup(req: Request, res: Response) {
+  const data = await prisma.user.findFirst({
+    where: {
+      id: req.payload.data.userId!
+    },
+    include: {
+      Group: true
+    }
+  });
+  res.status(200).send(data);
+}
+
+async function joinGroup(req: Request, res: Response) {
+  const groupId = req.params.groupId;
+  const data = await prisma.user.update({
+    where: {
+      id: req.payload.data.userId!
+    },
     data: {
-      name,
-      description,
-      createdBy: {
+      Group: {
         connect: {
-          id: ownerId
+          id: groupId
         }
       }
     },
     include: {
-      createdBy: true
+      Group: true
     }
   });
-  return data;
-};
+  res.status(200).send(data);
+}
 
-const deleteGroup = async (groupId: string) => {
-  const data = await prisma.group.delete({
-    where: {
-      id: groupId
-    }
-  });
-  return data;
-};
+async function removeGroup(req: Request, res: Response) {
+  const groupId = req.body.groupId;
+  const group = await deleteGroup(groupId);
+  res.status(200).send(group);
+}
 
-// const updateGroup = () => {};
+// lol
+async function leaveGroup(req: Request, res: Response) {
+    res.status(200).send(req.body);
+}
 
-export { createGroup, deleteGroup };
+export { getGroup, joinGroup, removeGroup, leaveGroup };
