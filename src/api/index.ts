@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import { isAuth, isInvalidMethod } from './middlewares';
 import { stableApiVersion } from '../Constants';
-import { loginRoute, singupRoute, groupRoute } from './routes';
 import { getUserMetadata } from '../websocket/usermeta';
+import { isAuth, isInvalidMethod } from './middlewares';
+import { loginRoute, singupRoute, groupRoute } from './routes';
 
 const apiRoute = Router();
 const routePrefix = `/v${stableApiVersion}`;

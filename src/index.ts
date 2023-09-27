@@ -2,13 +2,13 @@ import 'dotenv-safe/config';
 import './lib/createConnection';
 import '@total-typescript/ts-reset';
 import cors from 'cors';
-import express from 'express';
 import apiRoute from './api';
+import express from 'express';
 import Logger from './lib/Logger';
 import { createServer } from 'node:http';
 import { PORT, HttpCodes } from './Constants';
-import { attachSession } from './api/middlewares';
 import { createSocketServer } from './websocket';
+import { attachSession } from './api/middlewares';
 
 (async (): Promise<void> => {
   const app = express();
