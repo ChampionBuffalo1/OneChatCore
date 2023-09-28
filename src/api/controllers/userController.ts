@@ -3,7 +3,7 @@ import Logger from '../../lib/Logger';
 import { Request, Response } from 'express';
 import { PasswordSchema, generateJwt } from '../../lib';
 import { verifyUser } from '../../lib/helpers/userHelper';
-import { InvalidCredential } from '../errors/ValidationErrors';
+import { IntegrityFailure, InvalidCredential } from '../errors/ValidationErrors';
 import { HttpCodes, ERROR_CODES, bcryptSaltRounds } from '../../Constants';
 
 import { authBody } from '../../lib/validators/auth';
@@ -27,7 +27,7 @@ async function loginUser(req: Request, res: Response) {
         token
       });
     } catch (err) {
-      if (err instanceof InvalidCredential) {
+      if (err instanceof InvalidCredential || err instanceof IntegrityFailure) {
         res.status(HttpCodes.FORBIDDEN).send({
           code: ERROR_CODES.INVALID_CRED,
           message: err.message
