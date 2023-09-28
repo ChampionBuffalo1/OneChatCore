@@ -1,4 +1,4 @@
-import { sendResponse, Logger, getJwtPayload } from '../../lib';
+import { Logger, getJwtPayload } from '../../lib';
 import type { NextFunction, Request, Response } from 'express';
 import { HttpCodes } from '../../Constants';
 
@@ -9,12 +9,10 @@ const attachSession = async (req: Request, res: Response, next: NextFunction): P
   } catch (err) {
     Logger.error(`Session error: ${(err as Error).message}`);
     if ((err as Error).name === 'JwtError') {
-      res.status(HttpCodes.FORBIDDEN).send(
-        sendResponse({
-          code: HttpCodes.FORBIDDEN,
-          message: (err as Error).cause
-        })
-      );
+      res.status(HttpCodes.FORBIDDEN).send({
+        code: HttpCodes.FORBIDDEN,
+        message: (err as Error).cause
+      });
     }
   }
   next();

@@ -1,5 +1,4 @@
 import { HttpCodes } from '../../Constants';
-import { sendResponse } from '../../lib';
 import type { Request, Response, NextFunction } from 'express';
 
 const authKey = 'authorization' as const;
@@ -10,16 +9,11 @@ const authKey = 'authorization' as const;
 function isAuth(req: Request, res: Response, next: NextFunction): void {
   const authHeader = req.headers[authKey];
   if (!authHeader) {
-    res.status(HttpCodes.UNAUTHORIZED).send(
-      sendResponse(
-        {
-          code: HttpCodes.UNAUTHORIZED,
-          name: 'User not authorized',
-          message: 'You must be logged in to perform this action'
-        },
-        true
-      )
-    );
+    res.status(HttpCodes.UNAUTHORIZED).send({
+      code: HttpCodes.UNAUTHORIZED,
+      name: 'User not authorized',
+      message: 'You must be logged in to perform this action'
+    });
     return;
   }
   next();
@@ -30,7 +24,7 @@ function isntAuth(req: Request, res: Response, next: NextFunction): void {
   if (authHeader) {
     res.redirect('/');
     return;
-  };
+  }
   next();
 }
 
@@ -38,16 +32,11 @@ function isntAuth(req: Request, res: Response, next: NextFunction): void {
  * middleware to deny requests to routes with unsupported methods
  */
 function isInvalidMethod(req: Request, res: Response): void {
-  res.status(HttpCodes.METHOD_NOT_ALLOWED).send(
-    sendResponse(
-      {
-        code: HttpCodes.NOT_IMPLEMENTED,
-        name: 'Method not supported',
-        message: `${req.method} method is not supported on this route.`
-      },
-      true
-    )
-  );
+  res.status(HttpCodes.METHOD_NOT_ALLOWED).send({
+    code: HttpCodes.NOT_IMPLEMENTED,
+    name: 'Method not supported',
+    message: `${req.method} method is not supported on this route.`
+  });
 }
 
 export { isAuth, isntAuth, isInvalidMethod };
