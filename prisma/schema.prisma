@@ -26,8 +26,8 @@ model User {
 }
 
 model Group {
-  id          String    @id @default(auto()) @map("_id") @db.ObjectId
-  name        String
+  id          String    @id @default(cuid()) @map("_id") @db.ObjectId
+  name        String    @unique
   description String    @default("")
   // Owner
   createdBy   User      @relation(fields: [userId], references: [id], name: "createdBy")
