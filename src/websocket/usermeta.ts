@@ -11,6 +11,14 @@ async function getUserMetadata(id: string) {
       Group: {
         select: {
           id: true,
+          name: true,
+          createdBy: {
+            select: {
+              id: true,
+              username: true,
+              avatarUrl: true
+            }
+          },
           messages: {
             take: 50,
             orderBy: {
