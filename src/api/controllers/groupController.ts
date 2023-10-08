@@ -1,5 +1,6 @@
 import { prisma } from '../../lib';
 import { Request, Response } from 'express';
+import { ERROR_CODES, HttpCodes } from '../../Constants';
 import { deleteGroup } from '../../lib/helpers/groupHelper';
 
 async function getGroup(req: Request, res: Response) {
@@ -42,7 +43,38 @@ async function removeGroup(req: Request, res: Response) {
 
 // lol
 async function leaveGroup(req: Request, res: Response) {
-    res.status(200).send(req.body);
+  res.status(200).send(req.body);
 }
 
-export { getGroup, joinGroup, removeGroup, leaveGroup };
+async function makeGroup(req: Request, res: Response) {
+  const name = req.body.name;
+  if (!name) {
+    return res.status(HttpCodes.NOT_ACCEPTABLE).send({
+      code: ERROR_CODES.INCOMPLETE_FORM,
+      message: 'name was missing in req body'
+    });
+  }
+  const data = await prisma.group.create({
+    data: {
+      name,
+      userId: req.payload.data.userId!
+    },
+    select: {
+      name: true,
+      createdBy: {
+        select: {
+          id: true,
+          username: true,
+          avatarUrl: true
+        }
+      },
+      messages: true,
+      id: true
+    }
+  });
+  return res.status(200).send({
+    data
+  });
+}
+
+export { getGroup, joinGroup, removeGroup, leaveGroup, makeGroup };
