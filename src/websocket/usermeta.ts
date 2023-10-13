@@ -23,6 +23,17 @@ async function getUserMetadata(id: string) {
             take: 50,
             orderBy: {
               createdAt: 'desc'
+            },
+            select: {
+              id: true,
+              sentBy: {
+                select: {
+                  id: true,
+                  username: true,
+                  avatarUrl: true
+                }
+              },
+              text: true
             }
           }
         }
