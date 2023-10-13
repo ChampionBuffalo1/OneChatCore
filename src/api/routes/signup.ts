@@ -1,10 +1,11 @@
 import { Router } from 'express';
+import { authBody } from '../../lib/validators/auth';
 import { signupUser } from '../controllers/userController';
-import { isntAuth, isInvalidMethod } from '../middlewares';
+import { isntAuth, isInvalidMethod, validateSchema } from '../middlewares';
 
 const singupRoute = Router();
 
-singupRoute.post('/', isntAuth, signupUser);
-singupRoute.all('/', isInvalidMethod);
+singupRoute.post('/', isntAuth, validateSchema(authBody), signupUser);
+singupRoute.all('*', isInvalidMethod);
 
 export { singupRoute };
