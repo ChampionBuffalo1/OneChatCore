@@ -6,8 +6,8 @@ const WsMessageSchema = z.object({
   groupId: z.optional(z.string()),
   directMessageId: z.optional(z.string()),
   sender: z.object({
-    id: z.string(),
-    username: z.string()
+    id: z.string().min(1),
+    username: z.string().min(1)
   })
 });
 

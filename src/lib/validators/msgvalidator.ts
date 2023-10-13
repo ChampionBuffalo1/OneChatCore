@@ -5,7 +5,7 @@ const messageId = z.object({
 });
 
 const messageText = z.object({
-  text: z.string()
+  text: z.string().min(1)
 });
 
 const messageQuery = z

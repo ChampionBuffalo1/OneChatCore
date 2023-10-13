@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { maxPassLen } from '../Constants';
 
 const WsAuthSchema = z.object({
-  token: z.string()
+  token: z.string().min(1)
 });
 
 const PasswordSchema = z
