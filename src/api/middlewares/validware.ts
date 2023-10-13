@@ -1,4 +1,5 @@
-import { HttpCodes } from '../../Constants';
+import { ZodSchema } from 'zod';
+import { ERROR_CODES, HttpCodes } from '../../Constants';
 import type { Request, Response, NextFunction } from 'express';
 
 const authKey = 'authorization' as const;
@@ -39,4 +40,21 @@ function isInvalidMethod(req: Request, res: Response): void {
   });
 }
 
-export { isAuth, isntAuth, isInvalidMethod };
+/**
+ * middleware to validate req.body given zod schema
+ */
+function validateSchema(schema: ZodSchema) {
+  return async (req: Request, res: Response, next: NextFunction) => {
+    const parsedBody = await schema.spa(req.body);
+    if (parsedBody.success) {
+      next();
+    } else {
+      res.status(HttpCodes.BAD_REQUEST).send({
+        code: ERROR_CODES.ZOD_ERROR,
+        message: parsedBody.error.flatten().fieldErrors
+      });
+    }
+  };
+}
+
+export { isAuth, isntAuth, isInvalidMethod, validateSchema };
