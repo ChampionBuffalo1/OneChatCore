@@ -4,7 +4,7 @@ import { isAuth, isInvalidMethod } from '../middlewares';
 import { getGroup, joinGroup, leaveGroup, makeGroup, removeGroup } from '../controllers/groupController';
 
 const groupRoute = Router();
-groupRoute.use('/messages', messageRouter);
+groupRoute.use('/:groupId/messages', messageRouter);
 
 groupRoute.get('/', isAuth, getGroup);
 
