@@ -13,7 +13,20 @@ async function getMessage(req: Request, res: Response) {
         gte: after && new Date(after)
       }
     },
-    take: Math.min(limit || 100, 50)
+    take: Math.min(limit || 100, 50),
+    select: {
+      id: true,
+      text: true,
+      sentBy: {
+        select: {
+          id: true,
+          avatarUrl: true,
+          username: true
+        }
+      },
+      groupId: true,
+      createdAt: true
+    }
   });
   res.send({
     messages
@@ -30,6 +43,10 @@ async function editMessage(req: Request, res: Response) {
     },
     data: {
       text
+    },
+    select: {
+      id: true,
+      text: true
     }
   });
   res.send({
@@ -46,8 +63,17 @@ async function createMessage(req: Request, res: Response) {
       groupId,
       userId: req.payload.data.userId!
     },
-    include: {
-      sentBy: true
+    select: {
+      id: true,
+      text: true,
+      sentBy: {
+        select: {
+          id: true,
+          avatarUrl: true,
+          username: true
+        }
+      },
+      groupId: true
     }
   });
   res.send({
@@ -64,6 +90,9 @@ async function deleteMessage(req: Request, res: Response) {
       id,
       groupId,
       userId: req.payload.data.userId!
+    },
+    select: {
+      id: true
     }
   });
   res.send({
