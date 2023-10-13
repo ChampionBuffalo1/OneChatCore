@@ -1,4 +1,9 @@
 import { prisma } from '../lib';
+const selectUser = {
+  id: true,
+  username: true,
+  avatarUrl: true
+};
 
 async function getUserMetadata(id: string) {
   const metadata = await prisma.user.findUnique({
@@ -13,11 +18,7 @@ async function getUserMetadata(id: string) {
           id: true,
           name: true,
           createdBy: {
-            select: {
-              id: true,
-              username: true,
-              avatarUrl: true
-            }
+            select: selectUser
           },
           messages: {
             take: 50,
@@ -27,11 +28,7 @@ async function getUserMetadata(id: string) {
             select: {
               id: true,
               sentBy: {
-                select: {
-                  id: true,
-                  username: true,
-                  avatarUrl: true
-                }
+                select: selectUser
               },
               text: true
             }
