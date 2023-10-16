@@ -15,7 +15,7 @@ async function handshake(message: string, uuid: string) {
     if (authSchema.success) {
       const { token } = authSchema.data;
       // User auth verification and socket upgrade
-      const payload = await getJwtPayload(token, true);
+      const payload = await getJwtPayload(token);
       if (payload.data.userId) {
         const token = payload.data.userId;
         const metadata = await getUserMetadata(token);
