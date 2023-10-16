@@ -5,7 +5,9 @@ import { HttpCodes } from '../../Constants';
 const attachSession = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const jwtToken = req.headers.authorization?.replace('Bearer ', '');
   try {
-    if (jwtToken) req.payload = await getJwtPayload(jwtToken, true);
+    // FIXME: Add true as second parameter if we ever use redis to store secret along with jwt
+    // For now its planned to remove Redis from the stack in order to reduce complexity
+    if (jwtToken) req.payload = await getJwtPayload(jwtToken);
   } catch (err) {
     Logger.error(`Session error: ${(err as Error).message}`);
     if ((err as Error).name === 'JwtError') {
