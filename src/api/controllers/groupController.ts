@@ -1,6 +1,7 @@
 import { prisma } from '../../lib';
 import { Request, Response } from 'express';
 import { ERROR_CODES, HttpCodes } from '../../Constants';
+import { broadcastUpdate } from '../../websocket/message';
 
 async function getGroup(req: Request, res: Response) {
   const data = await prisma.user.findFirst({
@@ -12,6 +13,28 @@ async function getGroup(req: Request, res: Response) {
     }
   });
   res.send(data);
+}
+
+async function editGroup(req: Request, res: Response) {
+  const groupId = req.params.groupId;
+  const { name } = req.body;
+  const group = await prisma.group.update({
+    where: {
+      id: groupId
+    },
+    data: {
+      name
+    },
+    select: {
+      id: true,
+      name: true
+    }
+  });
+  broadcastUpdate(groupId, {
+    type: 'G_UPDATE',
+    message: group
+  });
+  res.send({ group });
 }
 
 async function joinGroup(req: Request, res: Response) {
@@ -40,6 +63,10 @@ async function deleteGroup(req: Request, res: Response) {
     where: {
       id: groupId
     }
+  });
+  broadcastUpdate(groupId, {
+    type: 'G_DELETE',
+    message: group
   });
   res.send({ group });
 }
@@ -97,4 +124,4 @@ async function createGroup(req: Request, res: Response) {
   });
 }
 
-export { getGroup, joinGroup, deleteGroup, leaveGroup, createGroup };
+export { getGroup, joinGroup, deleteGroup, leaveGroup, createGroup, editGroup };
