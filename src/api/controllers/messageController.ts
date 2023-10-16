@@ -51,7 +51,7 @@ async function editMessage(req: Request, res: Response) {
     }
   });
   broadcastUpdate(groupId, {
-    type: 'UPDATE',
+    type: 'M_UPDATE',
     message
   })
   res.send({
@@ -82,7 +82,7 @@ async function createMessage(req: Request, res: Response) {
     }
   });
   broadcastUpdate(groupId, {
-    type: 'CREATE',
+    type: 'M_CREATE',
     message
   });
   res.send({
@@ -105,7 +105,7 @@ async function deleteMessage(req: Request, res: Response) {
     }
   });
   broadcastUpdate(groupId, {
-    type: 'DELETE',
+    type: 'M_DELETE',
     message: deleted
   });
   res.send({

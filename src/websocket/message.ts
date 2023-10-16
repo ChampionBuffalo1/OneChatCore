@@ -5,7 +5,7 @@ import { WsMessageSchema } from './zschema';
 async function broadcastUpdate(
   groupId: string,
   status: {
-    type: 'CREATE' | 'UPDATE' | 'DELETE';
+    type: 'M_CREATE' | 'M_UPDATE' | 'M_DELETE' | 'G_CREATE' | 'G_UPDATE' | 'G_DELETE';
     message: Record<string, unknown>;
   }
 ) {
