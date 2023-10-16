@@ -1,10 +1,20 @@
+import store from './Store';
 import { WsMessageSchema } from './zschema';
-import { sendMessage } from './utils';
 
-async function handleMessage(message: WsMessageSchema, token: string) {
-  if (message.text.includes('hello')) {
-    sendMessage(token, { text: 'Hi' });
+// Serve side websocket connection handler
+async function broadcastUpdate(
+  groupId: string,
+  status: {
+    type: 'CREATE' | 'UPDATE' | 'DELETE';
+    message: Record<string, unknown>;
+  }
+) {
+  const sockets = store.getGroupConnections(groupId);
+  if (!sockets) return;
+  for (const socket of sockets) {
+    socket.send(JSON.stringify(status));
   }
 }
 
-export { handleMessage };
+async function handleMessage(_message: WsMessageSchema, _token: string) {}
+export { broadcastUpdate, handleMessage };

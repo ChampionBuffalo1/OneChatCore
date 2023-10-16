@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { prisma } from '../../lib';
+import { broadcastUpdate } from '../../websocket/message';
 
 async function getMessage(req: Request, res: Response) {
   const { id, before, after, limit } = req.body;
@@ -49,6 +50,10 @@ async function editMessage(req: Request, res: Response) {
       text: true
     }
   });
+  broadcastUpdate(groupId, {
+    type: 'UPDATE',
+    message
+  })
   res.send({
     message
   });
@@ -76,6 +81,10 @@ async function createMessage(req: Request, res: Response) {
       groupId: true
     }
   });
+  broadcastUpdate(groupId, {
+    type: 'CREATE',
+    message
+  });
   res.send({
     message
   });
@@ -94,6 +103,10 @@ async function deleteMessage(req: Request, res: Response) {
     select: {
       id: true
     }
+  });
+  broadcastUpdate(groupId, {
+    type: 'DELETE',
+    message: deleted
   });
   res.send({
     deleted

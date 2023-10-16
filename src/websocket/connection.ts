@@ -1,13 +1,11 @@
-import { randomUUID } from 'crypto';
 import store from './Store';
 import { WebSocket } from 'ws';
-import { manualClose, sendMessage } from './utils';
-import { Logger, WsAuthSchema, getJwtPayload } from '../lib';
+import { handleMessage } from './message';
 import { handleSocketError } from './error';
 import { WsMessageSchema } from './zschema';
-import { handleMessage } from './message';
 import { getUserMetadata } from './usermeta';
-import { setGroupTokens, deleteGroupTokens } from './redisUtil';
+import { manualClose, sendMessage } from './utils';
+import { Logger, WsAuthSchema, getJwtPayload } from '../lib';
 
 const maxwait = 30; // in seconds
 
@@ -20,13 +18,16 @@ async function handshake(message: string, uuid: string) {
       const payload = await getJwtPayload(token, true);
       if (payload.data.userId) {
         const token = payload.data.userId;
-        const socket = store.upgradeSocket(uuid, token);
         const metadata = await getUserMetadata(token);
+        const socket = store.upgradeSocket(uuid, token);
         sendMessage(token, {
           message: 'Authenticated successfully',
           data: metadata
         });
-        await Promise.all(metadata?.Group.map(group => setGroupTokens(group.id, token)) || []);
+        for (const { id } of metadata!.Group) {
+          store.setGroupConnection(id, socket);
+        }
+
         // Removing old tmp listeners
         //  0th listener is setup by `ws` package itself
         const listener = socket.listeners('close')[1] as (this: WebSocket, ...args: unknown[]) => void;
@@ -40,7 +41,6 @@ async function handshake(message: string, uuid: string) {
         });
         socket.on('close', async (code: number, reason: string) => {
           if (code !== manualClose) Logger.info('Websocket connection closed with code: ' + code + ' reason:' + reason);
-          await Promise.all(metadata?.Group.map(group => deleteGroupTokens(group.id, token)) || []);
           store.removeConnection(token);
         });
       }
@@ -68,8 +68,7 @@ async function handshake(message: string, uuid: string) {
 }
 
 function handleConnection(ws: WebSocket) {
-  const uuid = randomUUID().substring(0, 16);
-  store.setTmpConnection(uuid, ws);
+  const uuid = store.setTmpConnection(ws);
   sendMessage(
     uuid,
     {

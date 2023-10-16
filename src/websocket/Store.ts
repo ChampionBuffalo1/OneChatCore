@@ -1,14 +1,18 @@
 import { WebSocket } from 'ws';
 import { maxWsCon } from '../Constants';
 import { manualClose } from './utils';
+import { randomUUID } from 'crypto';
 
 class SocketStore {
+  private groupSocket: Map<string, Set<WebSocket>> = new Map();
   private authSocket: Map<string, WebSocket> = new Map();
   private tmpSocket: Map<string, WebSocket> = new Map();
   constructor(private readonly limit: number) {}
   // For tmp socket connection that will be removed after some amount of times if not authenticated
-  setTmpConnection(uuid: string, ws: WebSocket): void {
+  setTmpConnection(ws: WebSocket): string {
+    const uuid = randomUUID().substring(0, 16);
     this.tmpSocket.set(uuid, ws);
+    return uuid;
   }
   getTmpSocket(uuid: string): WebSocket | undefined {
     return this.tmpSocket.get(uuid);
@@ -41,6 +45,21 @@ class SocketStore {
     if (ws?.CLOSED) ws.close(manualClose);
     return this.authSocket.delete(uuid);
   }
+  setGroupConnection(groupId: string, ws: WebSocket): void {
+    if (!this.groupSocket.has(groupId)) this.groupSocket.set(groupId, new Set());
+    this.groupSocket.get(groupId)!.add(ws);
+    // Remove the socket from the group when it closes
+    ws.on('close', () => this.groupSocket.get(groupId)?.delete(ws));
+  }
+
+  getGroupConnections(groupId: string): Set<WebSocket> | undefined {
+    return this.groupSocket.get(groupId);
+  }
+
+  removeGroup(groupId: string): boolean {
+    return this.groupSocket.delete(groupId);
+  }
+
   reset(): void {
     this.authSocket.forEach(ws => ws.close(manualClose));
     this.authSocket.clear();
