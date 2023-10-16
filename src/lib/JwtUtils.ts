@@ -7,7 +7,8 @@ import { JwtSecret, maxTokenAge, redisPrefix } from '../Constants';
 const generateJwt = async (payload: Omit<JwtPayload, 'key'>): Promise<string> => {
   const uuid = randomUUID().substring(0, 20);
   // Time in seconds
-  await redis?.set(redisPrefix + uuid, JSON.stringify(payload), 'EX', maxTokenAge / 1000);
+  // Only storing in redis if sensitive data is attached to session
+  if (payload.secret) await redis?.set(redisPrefix + uuid, JSON.stringify(payload), 'EX', maxTokenAge / 1000);
 
   const token = jwt.sign(
     {
