@@ -3,10 +3,9 @@ import Logger from '../../lib/Logger';
 import { Request, Response } from 'express';
 import { InvalidUsername } from '../errors';
 import { PasswordSchema, generateJwt } from '../../lib';
-import { verifyUser } from '../../lib/helpers/userHelper';
-import { createUser, hasUsername } from '../../lib/helpers/userHelper';
 import { HttpCodes, ERROR_CODES, bcryptSaltRounds } from '../../Constants';
 import { IntegrityFailure, InvalidCredential } from '../errors/ValidationErrors';
+import { createUser, hasUsername, verifyUser } from '../../lib/helpers/userHelper';
 
 async function loginUser(req: Request, res: Response) {
   const { username, password } = req.body;
