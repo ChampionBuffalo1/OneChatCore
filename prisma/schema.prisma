@@ -11,38 +11,48 @@ datasource db {
 }
 
 model User {
-  id           String    @id @default(auto()) @map("_id") @db.ObjectId
-  username     String    @unique
+  id           String      @id @default(auto()) @map("_id") @db.ObjectId
+  username     String      @unique
   passwordHash String
   avatarUrl    String?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  Group        Group[]   @relation("createdBy")
-  // TODO: Fix the one-to-many self realtionship bug when trying to add a friends field 
-  // friends  User[]   @relation("Friendship")
-  // User     User?    @relation("Friendship", fields: [friendId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  // friendId String[] @db.ObjectId
-  messages      Message[]
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  ownedGroup   Group[]     @relation("owner")
+  messages     Message[]
+  groups       GroupUser[]
 }
 
 model Group {
-  id          String    @id @default(auto()) @map("_id") @db.ObjectId
-  name        String    @unique
-  description String    @default("")
+  id          String      @id @default(auto()) @map("_id") @db.ObjectId
+  name        String      @unique
+  description String      @default("")
+  messages    Message[]
+  members     GroupUser[]
   // Owner
-  createdBy   User      @relation(fields: [userId], references: [id], name: "createdBy")
-  userId      String    @db.ObjectId
-  messages     Message[]
+  owner       User        @relation(fields: [userId], references: [id], name: "owner")
+  userId      String      @db.ObjectId
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model GroupUser {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String   @db.ObjectId
+  group     Group    @relation(fields: [groupId], references: [id])
+  groupId   String   @db.ObjectId
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Message {
-  id     String @id @default(auto()) @map("_id") @db.ObjectId
-  text   String @db.String
-  sentBy User   @relation(fields: [userId], references: [id])
-  Group     Group    @relation(fields: [groupId], references: [id])
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  text      String   @db.String
+  author    User     @relation(fields: [userId], references: [id])
+  group     Group    @relation(fields: [groupId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  groupId   String   @db.ObjectId
-  userId    String   @db.ObjectId
+  groupId String @db.ObjectId
+  userId  String @db.ObjectId
 }
