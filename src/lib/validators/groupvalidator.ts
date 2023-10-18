@@ -1,7 +1,9 @@
 import { z } from 'zod';
 
-const editGroupProps = z.object({
+const groupName = z.object({
   name: z.string().min(1)
 });
 
-export { editGroupProps };
+const editGroupProps = groupName;
+
+export { editGroupProps, groupName };

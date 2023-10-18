@@ -18,7 +18,7 @@ async function getMessage(req: Request, res: Response) {
     select: {
       id: true,
       text: true,
-      sentBy: {
+      author: {
         select: {
           id: true,
           avatarUrl: true,
@@ -53,7 +53,7 @@ async function editMessage(req: Request, res: Response) {
   broadcastUpdate(groupId, {
     type: 'M_UPDATE',
     message
-  })
+  });
   res.send({
     message
   });
@@ -71,7 +71,7 @@ async function createMessage(req: Request, res: Response) {
     select: {
       id: true,
       text: true,
-      sentBy: {
+      author: {
         select: {
           id: true,
           avatarUrl: true,
