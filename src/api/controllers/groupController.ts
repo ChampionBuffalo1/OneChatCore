@@ -1,18 +1,22 @@
 import { prisma } from '../../lib';
 import { Request, Response } from 'express';
-import { ERROR_CODES, HttpCodes } from '../../Constants';
 import { broadcastUpdate } from '../../websocket/message';
 
 async function getGroup(req: Request, res: Response) {
-  const data = await prisma.user.findFirst({
+  const group = await prisma.groupUser.findFirst({
     where: {
-      id: req.payload.data.userId!
+      userId: req.payload.data.userId
     },
-    include: {
-      Group: true
+    select: {
+      group: {
+        select: {
+          id: true,
+          name: true
+        }
+      }
     }
   });
-  res.send(data);
+  res.send({ group });
 }
 
 async function editGroup(req: Request, res: Response) {
@@ -34,31 +38,47 @@ async function editGroup(req: Request, res: Response) {
     type: 'G_UPDATE',
     message: group
   });
-  res.send({ group });
+  res.json(group);
 }
 
 async function joinGroup(req: Request, res: Response) {
   const groupId = req.params.groupId;
-  const data = await prisma.user.update({
+  const userId = req.payload.data.userId!;
+
+  const existingMembership = await prisma.groupUser.findFirst({
     where: {
-      id: req.payload.data.userId!
-    },
-    data: {
-      Group: {
-        connect: {
-          id: groupId
-        }
-      }
-    },
-    include: {
-      Group: true
+      groupId,
+      userId
     }
   });
-  res.send(data);
+
+  if (existingMembership) {
+    res.status(400).send({ error: 'User is already a member of the group.' });
+    return;
+  }
+
+  const group = await prisma.groupUser.create({
+    data: {
+      userId,
+      groupId
+    },
+    select: {
+      group: {
+        select: {
+          id: true,
+          name: true
+        }
+      }
+    }
+  });
+
+  res.send({
+    group
+  });
 }
 
 async function deleteGroup(req: Request, res: Response) {
-  const groupId = req.body.groupId;
+  const groupId = req.params.groupId;
   const group = await prisma.group.delete({
     where: {
       id: groupId
@@ -72,43 +92,73 @@ async function deleteGroup(req: Request, res: Response) {
 }
 
 async function leaveGroup(req: Request, res: Response) {
+  const userId = req.payload.data.userId!;
   const groupId = req.params.groupId;
-  const group = await prisma.user.update({
+
+  const groupRel = await prisma.groupUser.findFirst({
     where: {
-      id: req.payload.data.userId!
+      groupId: groupId,
+      userId: userId
     },
+    select: {
+      group: {
+        select: {
+          id: true,
+          name: true,
+          owner: {
+            select: {
+              id: true
+            }
+          }
+        }
+      }
+    }
+  });
+  if (!groupRel) {
+    res.status(404).send({
+      error: 'group not found'
+    });
+    return;
+  }
+
+  if (groupRel.group.owner.id === userId) {
+    return deleteGroup(req, res);
+  }
+
+
+  // const updatedGroup = await prisma.groupUser.delete({
+  //   where: {
+  //     userId,
+  //     groupId
+  //   }
+  // });
+
+  res.json(groupRel.group);
+}
+
+async function createGroup(req: Request, res: Response) {
+  const { name } = req.body;
+  const data = await prisma.group.create({
     data: {
-      Group: {
-        disconnect: {
-          id: groupId
+      name,
+      owner: {
+        connect: {
+          id: req.payload.data.userId
+        }
+      },
+      members: {
+        create: {
+          user: {
+            connect: {
+              id: req.payload.data.userId
+            }
+          }
         }
       }
     },
     select: {
-      id: true
-    }
-  });
-  res.send({
-    group
-  });
-}
-
-async function createGroup(req: Request, res: Response) {
-  const name = req.body.name;
-  if (!name) {
-    return res.status(HttpCodes.NOT_ACCEPTABLE).send({
-      code: ERROR_CODES.INCOMPLETE_FORM,
-      message: 'name was missing in req body'
-    });
-  }
-  const data = await prisma.group.create({
-    data: {
-      name,
-      userId: req.payload.data.userId!
-    },
-    select: {
       name: true,
-      createdBy: {
+      owner: {
         select: {
           id: true,
           username: true,
@@ -119,6 +169,9 @@ async function createGroup(req: Request, res: Response) {
       id: true
     }
   });
+  // await prisma.groupUser.create({
+
+  // })
   return res.send({
     data
   });
