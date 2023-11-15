@@ -24,7 +24,7 @@ async function handshake(message: string, uuid: string) {
           message: 'Authenticated successfully',
           data: metadata
         });
-        for (const { id } of metadata!.Group) {
+        for (const { id } of metadata) {
           store.setGroupConnection(id, socket);
         }
 

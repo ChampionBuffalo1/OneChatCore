@@ -5,51 +5,48 @@ import { prisma } from '../lib';
  * @returns Returns user metadata
  */
 async function getUserMetadata(id: string) {
-  const metadata = await prisma.user.findUnique({
+  const metadata = await prisma.groupUser.findMany({
     where: {
-      id
+      userId: id
     },
     select: {
-      id: true,
-      username: true,
       // Get all groups which user has joined
       // has keys such as name, id, owner, messages
-      groups: {
-        include: {
-          group: {
+      group: {
+        select: {
+          name: true,
+          id: true,
+          owner: {
             select: {
-              name: true,
               id: true,
-              owner: {
+              username: true,
+              avatarUrl: true
+            }
+          },
+          messages: {
+            take: 25,
+            orderBy: {
+              createdAt: 'desc'
+            },
+            select: {
+              id: true,
+              author: {
                 select: {
+                  id: true,
                   username: true,
                   avatarUrl: true
                 }
               },
-              // Last 25 messages from each group
-              messages: {
-                take: 25,
-                orderBy: {
-                  createdAt: 'desc'
-                },
-                select: {
-                  id: true,
-                  author: {
-                    select: {
-                      username: true,
-                      avatarUrl: true
-                    }
-                  },
-                  text: true
-                }
-              }
+              text: true
             }
           }
         }
       }
     }
   });
-  return metadata;
+  // metadata has to be sent in format Record<string,any>[] 
+  // but prisma returns {group: Record<string,any>}[]
+  return metadata.map(filter => filter.group);
 }
 
 export { getUserMetadata };
