@@ -1,10 +1,9 @@
 import { prisma } from '../lib';
-const selectUser = {
-  id: true,
-  username: true,
-  avatarUrl: true
-};
 
+/**
+ * @param id user Id
+ * @returns Returns user metadata
+ */
 async function getUserMetadata(id: string) {
   const metadata = await prisma.user.findUnique({
     where: {
@@ -13,24 +12,37 @@ async function getUserMetadata(id: string) {
     select: {
       id: true,
       username: true,
-      Group: {
-        select: {
-          id: true,
-          name: true,
-          createdBy: {
-            select: selectUser
-          },
-          messages: {
-            take: 50,
-            orderBy: {
-              createdAt: 'desc'
-            },
+      // Get all groups which user has joined
+      // has keys such as name, id, owner, messages
+      groups: {
+        include: {
+          group: {
             select: {
+              name: true,
               id: true,
-              sentBy: {
-                select: selectUser
+              owner: {
+                select: {
+                  username: true,
+                  avatarUrl: true
+                }
               },
-              text: true
+              // Last 25 messages from each group
+              messages: {
+                take: 25,
+                orderBy: {
+                  createdAt: 'desc'
+                },
+                select: {
+                  id: true,
+                  author: {
+                    select: {
+                      username: true,
+                      avatarUrl: true
+                    }
+                  },
+                  text: true
+                }
+              }
             }
           }
         }
