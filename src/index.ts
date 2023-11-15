@@ -3,6 +3,7 @@ import './lib/createConnection';
 import '@total-typescript/ts-reset';
 import cors from 'cors';
 import apiRoute from './api';
+import helmet from 'helmet';
 import express from 'express';
 import Logger from './lib/Logger';
 import { createServer } from 'node:http';
@@ -17,7 +18,7 @@ import { attachSession } from './api/middlewares';
   app.disable('x-powered-by');
   app.set('trust proxy', 1);
 
-  app.use(cors(), express.json(), express.urlencoded({ extended: true }));
+  app.use(cors(), helmet(), express.json(), express.urlencoded({ extended: true }));
   app.use(attachSession);
 
   app.use('/api', apiRoute);
