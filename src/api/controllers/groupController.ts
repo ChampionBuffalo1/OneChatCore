@@ -101,6 +101,7 @@ async function leaveGroup(req: Request, res: Response) {
       userId: userId
     },
     select: {
+      id: true,
       group: {
         select: {
           id: true,
@@ -125,15 +126,13 @@ async function leaveGroup(req: Request, res: Response) {
     return deleteGroup(req, res);
   }
 
+  const removed = await prisma.groupUser.delete({
+    where: { id: groupRel.id }
+  });
 
-  // const updatedGroup = await prisma.groupUser.delete({
-  //   where: {
-  //     userId,
-  //     groupId
-  //   }
-  // });
-
-  res.json(groupRel.group);
+  res.json({
+    groupId: removed.groupId
+  });
 }
 
 async function createGroup(req: Request, res: Response) {
