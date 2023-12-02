@@ -11,7 +11,7 @@ const attachSession = async (req: Request, res: Response, next: NextFunction): P
   } catch (err) {
     Logger.error(`Session error: ${(err as Error).message}`);
     if ((err as Error).name === 'JwtError') {
-      res.status(HttpCodes.FORBIDDEN).send({
+      res.status(HttpCodes.FORBIDDEN).json({
         code: HttpCodes.FORBIDDEN,
         message: (err as Error).cause
       });
