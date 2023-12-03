@@ -63,10 +63,35 @@ async function joinGroup(req: Request, res: Response) {
       groupId
     },
     select: {
+      // This code is duplicated from getUserMetadata in src/websocket/usermeta.ts
       group: {
         select: {
+          name: true,
           id: true,
-          name: true
+          owner: {
+            select: {
+              id: true,
+              username: true,
+              avatarUrl: true
+            }
+          },
+          messages: {
+            take: 25,
+            orderBy: {
+              createdAt: 'desc'
+            },
+            select: {
+              id: true,
+              author: {
+                select: {
+                  id: true,
+                  username: true,
+                  avatarUrl: true
+                }
+              },
+              text: true
+            }
+          }
         }
       }
     }
@@ -168,9 +193,6 @@ async function createGroup(req: Request, res: Response) {
       id: true
     }
   });
-  // await prisma.groupUser.create({
-
-  // })
   return res.send({
     data
   });
