@@ -104,7 +104,37 @@ async function joinGroup(req: Request, res: Response) {
 
 async function deleteGroup(req: Request, res: Response) {
   const groupId = req.params.groupId;
-  const group = await prisma.group.delete({
+  const userId = req.payload.data.userId!;
+
+  const group = await prisma.group.findFirst({
+    where: {
+      id: groupId,
+      owner: {
+        id: userId
+      }
+    },
+    select: {
+      id: true,
+      name: true,
+      owner: {
+        select: {
+          id: true
+        }
+      }
+    }
+  });
+  if (!group) {
+    res.status(404).send({
+      error: 'group not found'
+    });
+    return;
+  }
+  await prisma.groupUser.deleteMany({
+    where: {
+      groupId: groupId
+    }
+  });
+  await prisma.group.delete({
     where: {
       id: groupId
     }
@@ -113,6 +143,7 @@ async function deleteGroup(req: Request, res: Response) {
     type: 'G_DELETE',
     message: group
   });
+
   res.send({ group });
 }
 
