@@ -97,9 +97,7 @@ async function joinGroup(req: Request, res: Response) {
     }
   });
 
-  res.send({
-    group
-  });
+  res.json(group);
 }
 
 async function deleteGroup(req: Request, res: Response) {
