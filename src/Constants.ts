@@ -11,7 +11,7 @@ export const maxWsCon = 1000;
 export const bcryptSaltRounds = 8;
 export const redisURL: string = process.env.REDIS_URL!;
 export const mongoURL: string = process.env.MONGO_URL!;
-export const PORT: number = +process.env.API_PORT! || 3001;
+export const PORT: number = +process.env.PORT! || 3000;
 export const redirectUriKey = 'redirect';
 
 // Max delay time for reconnecting to redis (in ms)

@@ -30,6 +30,6 @@ COPY --from=builder /app/package.json .
 COPY --from=builder --chown=core:nodejs /app/dist ./dist
 COPY --from=builder --chown=core:nodejs /app/logs ./logs
 
-EXPOSE 3001
+EXPOSE 3000
 
 CMD ["node", "."]
