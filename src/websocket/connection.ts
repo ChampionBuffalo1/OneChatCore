@@ -1,7 +1,6 @@
 import store from './Store';
 import { WebSocket } from 'ws';
 import { handleMessage } from './message';
-import { handleSocketError } from './error';
 import { WsMessageSchema } from './zschema';
 import { getUserMetadata } from './usermeta';
 import { manualClose, sendMessage } from './utils';
@@ -24,7 +23,8 @@ async function handshake(message: string, uuid: string) {
           message: 'Authenticated successfully',
           data: metadata
         });
-        for (const { id } of metadata) {
+	// TODO: Fix the type
+        for (const { id } of (metadata as {id: string}[])) {
           store.setGroupConnection(id, socket);
         }
 
@@ -88,7 +88,7 @@ function handleConnection(ws: WebSocket) {
   }, 1000 * maxwait);
 
   ws.on('message', buffer => handshake(buffer.toString(), uuid));
-  ws.on('error', handleSocketError);
+  ws.on('error', Logger.error);
   ws.on('close', () => store.removeTmpSocket(uuid));
 }
 

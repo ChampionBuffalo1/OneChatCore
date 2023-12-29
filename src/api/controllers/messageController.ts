@@ -81,6 +81,7 @@ async function createMessage(req: Request, res: Response) {
       groupId: true
     }
   });
+
   broadcastUpdate(groupId, {
     type: 'M_CREATE',
     message
