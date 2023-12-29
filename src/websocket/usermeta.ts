@@ -25,9 +25,6 @@ async function getUserMetadata(id: string) {
           },
           messages: {
             take: 25,
-            orderBy: {
-              createdAt: 'desc'
-            },
             select: {
               id: true,
               author: {
@@ -44,9 +41,9 @@ async function getUserMetadata(id: string) {
       }
     }
   });
-  // metadata has to be sent in format Record<string,any>[] 
+  // metadata has to be sent in format Record<string,any>[]
   // but prisma returns {group: Record<string,any>}[]
-  return metadata.map(filter => filter.group);
+  return metadata.map((filter: Record<"group", unknown>) => filter.group);
 }
 
 export { getUserMetadata };
