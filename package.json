@@ -10,7 +10,8 @@
     "start": "node .",
     "build": "rimraf dist/ && tsc",
     "pretty": "prettier --write \"src/**/*.{js,ts,json,yml}\"",
-    "gen-env": "gen-env-types .env -o src/typings/env.d.ts -e ."
+    "gen-env": "gen-env-types .env -o src/typings/env.d.ts -e .",
+    "postinstall": "prisma generate"
   },
   "engines": {
     "node": ">=14.x",
