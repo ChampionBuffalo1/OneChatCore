@@ -1,23 +1,24 @@
 import { Logger, getJwtPayload } from '../../lib';
-import type { NextFunction, Request, Response } from 'express';
-import { HttpCodes } from '../../Constants';
+import { errorResponse } from '../../lib/response';
+import type { Request, Response, NextFunction } from 'express';
 
-const attachSession = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+function attachSession(req: Request, res: Response, next: NextFunction): void {
   const jwtToken = req.headers.authorization?.replace('Bearer ', '');
   try {
-    // FIXME: Add true as second parameter if we ever use redis to store secret along with jwt
-    // For now its planned to remove Redis from the stack in order to reduce complexity
-    if (jwtToken) req.payload = await getJwtPayload(jwtToken);
+    if (jwtToken) req.payload = getJwtPayload(jwtToken);
+    next();
   } catch (err) {
-    Logger.error(`Session error: ${(err as Error).message}`);
-    if ((err as Error).name === 'JwtError') {
-      res.status(HttpCodes.FORBIDDEN).json({
-        code: HttpCodes.FORBIDDEN,
-        message: (err as Error).cause
-      });
+    if ((err as Error).message === 'JwtError') {
+      res.status(401).json(
+        errorResponse({
+          code: 'INVALID_TOKEN',
+          message: 'Your access token has been expired.'
+        })
+      );
+      return;
     }
+    Logger.error(err);
   }
-  next();
-};
+}
 
 export { attachSession };
