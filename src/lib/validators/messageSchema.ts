@@ -1,11 +1,15 @@
 import { z } from 'zod';
 
 const messageId = z.object({
-  id: z.string().min(1)
+  id: z.string({
+    required_error: 'Id is missing'
+  })
 });
 
 const messageText = z.object({
-  text: z.string().min(1)
+  text: z.string({
+    required_error: 'Message text is missing'
+  })
 });
 
 const messageQuery = z
