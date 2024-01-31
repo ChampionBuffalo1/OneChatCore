@@ -1,7 +1,7 @@
 FROM node:18-alpine AS base
 
 FROM base AS deps
-# Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
+# Reference: https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 COPY package.json yarn.lock ./
@@ -26,10 +26,10 @@ USER core
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/.env.example ./.env.example
 COPY --from=builder /app/package.json .
+COPY prisma ./
 
 COPY --from=builder --chown=core:nodejs /app/dist ./dist
 COPY --from=builder --chown=core:nodejs /app/logs ./logs
 
 EXPOSE 3000
-
-CMD ["node", "."]
+CMD ["yarn", "start"]
