@@ -1,15 +1,8 @@
 import { promisify } from 'node:util';
+import { RESULT_PER_PAGE } from '../Constants';
+import { PaginatedResponse } from '../typings';
 
 const sleep = promisify(setTimeout);
-
-/**
- * Whether or not the username chars are allowed or not
- * A username should not contain a `@`, `=`, `+`, ` (backtick)
- * @param username The username to check
- * @returns boolean
- */
-const invalidChar = ['@', '=', '+', '`'];
-const isValidUsername = (username: string): boolean => !invalidChar.includes(username);
 
 const range = (min: number, max: number) => {
   min = Math.ceil(min);
@@ -25,4 +18,21 @@ const expBackOff = (k: number): number => {
   return Math.max(tp * 2, r * tp);
 };
 
-export { sleep, range, isValidUsername, expBackOff };
+function paginatedParameters(query: string, totalRecords: number, resultPerPage = RESULT_PER_PAGE): PaginatedResponse {
+  let queryNum = query ? parseInt(query, 10) : 0;
+  if (Number.isNaN(queryNum) || !Number.isSafeInteger(queryNum)) {
+    queryNum = 0;
+  }
+  const totalPages = Math.ceil(totalRecords / resultPerPage);
+  const currentPage = Math.max(Math.min(queryNum, totalPages), 1);
+  const skip = (currentPage - 1) * resultPerPage;
+  const take = resultPerPage;
+  return {
+    skip,
+    take,
+    totalPages,
+    currentPage
+  };
+}
+
+export { sleep, range, paginatedParameters, expBackOff };
