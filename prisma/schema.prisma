@@ -6,53 +6,66 @@ generator client {
 }
 
 datasource db {
-  provider = "mongodb"
-  url      = env("MONGO_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model User {
-  id           String      @id @default(auto()) @map("_id") @db.ObjectId
-  username     String      @unique
+  id           String   @id @default(cuid())
+  username     String   @unique @db.VarChar(64)
   passwordHash String
   avatarUrl    String?
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
-  ownedGroup   Group[]     @relation("owner")
-  messages     Message[]
-  groups       GroupUser[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  Group   Group[]
+  Member  Member[]
+  Message Message[]
 }
 
 model Group {
-  id          String      @id @default(auto()) @map("_id") @db.ObjectId
-  name        String      @unique
-  description String      @default("")
-  messages    Message[]
-  members     GroupUser[]
-  // Owner
-  owner       User        @relation(fields: [ownerId], references: [id], name: "owner")
-  ownerId      String      @db.ObjectId
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-}
+  id          String @id @default(cuid())
+  name        String @unique @db.VarChar(64)
+  description String @default("") @db.Text()
 
-model GroupUser {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  user      User     @relation(fields: [userId], references: [id])
-  userId    String   @db.ObjectId
-  group     Group    @relation(fields: [groupId], references: [id])
-  groupId   String   @db.ObjectId
+  owner   User   @relation(fields: [ownerId], references: [id])
+  ownerId String
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  Member  Member[]
+  Message Message[]
+  Role    Role[]
+}
+
+model Member {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  group     Group    @relation(fields: [groupId], references: [id])
+  groupId   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  Role      Role[]
+}
+
+model Role {
+  id       String  @id @default(cuid())
+  member   Member  @relation(fields: [memberId], references: [id])
+  memberId String
+  Group    Group?  @relation(fields: [groupId], references: [id])
+  groupId  String?
 }
 
 model Message {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  text      String   @db.String
+  id        String   @id @default(cuid())
+  text      String   @db.Text()
   author    User     @relation(fields: [userId], references: [id])
   group     Group    @relation(fields: [groupId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  groupId String @db.ObjectId
-  userId  String @db.ObjectId
+  groupId String
+  userId  String
 }
