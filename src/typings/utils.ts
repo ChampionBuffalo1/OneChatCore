@@ -6,6 +6,9 @@ export interface RequestBody<T> extends Request {
   body: T;
 }
 
-export interface RequestQuery<T> extends Request {
-  query: T;
-}
+export type PaginatedResponse = {
+  currentPage: number;
+  totalPages: number;
+  skip: number;
+  take: number;
+};
