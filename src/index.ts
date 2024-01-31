@@ -1,29 +1,36 @@
-import 'dotenv-safe/config';
-import './lib/createConnection';
-import '@total-typescript/ts-reset';
+import './lib/db';
 import cors from 'cors';
+import 'dotenv-safe/config';
 import apiRoute from './api';
 import helmet from 'helmet';
 import express from 'express';
+import '@total-typescript/ts-reset';
 import Logger from './lib/Logger';
+import { PORT } from './Constants';
 import { createServer } from 'node:http';
-import { PORT, HttpCodes } from './Constants';
 import { createSocketServer } from './websocket';
 import { attachSession } from './api/middlewares';
+import { errorResponse } from './lib/response';
 
 (async (): Promise<void> => {
   const app = express();
   const server = createServer(app);
-  app.disable('etag');
-  app.disable('x-powered-by');
-  app.set('trust proxy', 1);
+  app
+    .disable('x-powered-by')
+    .set('trust proxy', 1)
+    .use(cors(), helmet(), express.json(), express.urlencoded({ extended: true }), attachSession);
 
-  app.use(cors(), helmet(), express.json(), express.urlencoded({ extended: true }));
-  app.use(attachSession);
-
-  app.use('/api', apiRoute);
-  app.get('/', (_, res) => res.sendStatus(HttpCodes.OK));
+  app.use('/api/v1', apiRoute);
+  app.get('/', (_, res) => res.sendStatus(200));
   createSocketServer(server);
+  app.all('*', (req, res) => {
+    res.status(404).send(
+      errorResponse({
+        code: 'INVALID_ROUTE',
+        message: `${req.method} ${req.url} route not found.`
+      })
+    );
+  });
 
   server.listen(PORT, () => Logger.info(`Listening on port: ${PORT}`));
 
