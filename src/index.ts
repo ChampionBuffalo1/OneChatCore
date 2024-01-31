@@ -24,7 +24,7 @@ import { errorResponse } from './lib/response';
   app.get('/', (_, res) => res.sendStatus(200));
   createSocketServer(server);
   app.all('*', (req, res) => {
-    res.status(404).send(
+    res.status(404).json(
       errorResponse({
         code: 'INVALID_ROUTE',
         message: `${req.method} ${req.url} route not found.`
