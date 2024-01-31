@@ -2,7 +2,7 @@ import { errorResponse } from '../../lib/response';
 import type { Request, Response, NextFunction } from 'express';
 
 /**
- * middleware to make sure the user is logged in
+ * middleware to make sure only the authorized user can access protected route
  */
 function isAuth(req: Request, res: Response, next: NextFunction): void {
   if (req.payload) {
@@ -15,7 +15,6 @@ function isAuth(req: Request, res: Response, next: NextFunction): void {
       })
     );
   }
-  next();
 }
 
 function isntAuth(req: Request, res: Response, next: NextFunction): void {
