@@ -17,12 +17,4 @@ function isAuth(req: Request, res: Response, next: NextFunction): void {
   }
 }
 
-function isntAuth(req: Request, res: Response, next: NextFunction): void {
-  if (req.payload) {
-    res.redirect('/');
-  } else {
-    next();
-  }
-}
-
-export { isAuth, isntAuth };
+export { isAuth };
