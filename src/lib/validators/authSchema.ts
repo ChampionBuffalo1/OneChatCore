@@ -11,6 +11,7 @@ const authBody = z.object({
     .string({
       required_error: 'Password field missing.'
     })
+    .min(8, 'Password must be at least 8 characters.')
     .max(maxPassLen, `Password should not exceed ${maxPassLen} character limit`)
 });
 
