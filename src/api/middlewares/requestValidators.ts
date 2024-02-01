@@ -1,20 +1,21 @@
-import { HttpCodes } from '../../Constants';
 import { RequestBody } from '../../typings';
+import { errorResponse } from '../../lib/response';
 import type { Request, Response, NextFunction } from 'express';
 
 /**
- * Makes sure that the request has an body and at least 1 key
+ * Makes sure that the request has body and at least 1 key
  */
 const hasReqBody = (req: Request, res: Response, next: NextFunction): void => {
   if (!req.body || Object.keys(req.body).length === 0) {
-    res.status(HttpCodes.FORBIDDEN).send({
-      code: HttpCodes.FORBIDDEN,
-      name: 'Request Body Missing',
-      message: 'This path requires the request body to be present.'
-    });
-    return;
+    res.status(400).json(
+      errorResponse({
+        code: 'BAD_REQUEST',
+        message: 'Request Body Missing'
+      })
+    );
+  } else {
+    next();
   }
-  next();
 };
 
 const reqBodyHasKeys =
@@ -26,12 +27,12 @@ const reqBodyHasKeys =
       if (
         !Object.hasOwn(req.body, key) || ['number', 'boolean'].includes(typeof req.body.key) ? false : !req.body.key
       ) {
-        res.status(HttpCodes.FORBIDDEN).send({
-          code: HttpCodes.FORBIDDEN,
-          name: 'Request body is missing some data.',
-          // Send a better error message
-          message: `Request Body is missing key: ${key}`
-        });
+        res.status(400).json(
+          errorResponse({
+            code: 'BAD_REQUEST',
+            message: `Request Body is missing key: ${key}`
+          })
+        );
         return;
       }
     }
