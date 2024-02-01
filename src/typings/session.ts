@@ -1,7 +1,5 @@
 export interface JwtPayload {
-  data: {
-    userId: string;
-  };
+  userId: string;
 }
 
 declare global {
