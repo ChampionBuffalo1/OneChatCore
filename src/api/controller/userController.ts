@@ -1,8 +1,8 @@
 import bcrypt from 'bcrypt';
 import { Prisma } from '@prisma/client';
-import type { Request, Response } from 'express';
 import { bcryptSaltRounds } from '../../Constants';
-import { Logger, prisma, generateJwt, errorResponse, successResponse } from '../../lib';
+import type { NextFunction, Request, Response } from 'express';
+import { prisma, generateJwt, errorResponse, successResponse } from '../../lib';
 
 const responseStruct = {
   id: true,
@@ -11,7 +11,7 @@ const responseStruct = {
   avatarUrl: true
 };
 
-async function loginUser(req: Request, res: Response): Promise<void> {
+async function loginUser(req: Request, res: Response, next: NextFunction): Promise<void> {
   const { username, password } = req.body;
   try {
     const userInfo = await prisma.user.findFirstOrThrow({
@@ -48,17 +48,11 @@ async function loginUser(req: Request, res: Response): Promise<void> {
       );
       return;
     }
-    Logger.error(err);
-    res.status(500).json(
-      errorResponse({
-        code: 'SERVICE_ERROR',
-        message: 'Internal Service Error'
-      })
-    );
+    next(err);
   }
 }
 
-async function signupUser(req: Request, res: Response): Promise<void> {
+async function signupUser(req: Request, res: Response, next: NextFunction): Promise<void> {
   const { username, password } = req.body;
   try {
     const passwordHash = await bcrypt.hash(password, bcryptSaltRounds);
@@ -82,17 +76,11 @@ async function signupUser(req: Request, res: Response): Promise<void> {
       );
       return;
     }
-    Logger.error(err);
-    res.status(500).json(
-      errorResponse({
-        code: 'SERVICE_ERROR',
-        message: 'Internal Service Error'
-      })
-    );
+    next(err);
   }
 }
 
-async function getSelf(req: Request, res: Response) {
+async function getSelf(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const user = await prisma.user.findFirstOrThrow({
       where: {
@@ -112,18 +100,12 @@ async function getSelf(req: Request, res: Response) {
       );
       return;
     }
-    Logger.error(err);
-    res.status(500).json(
-      errorResponse({
-        code: 'SERVICE_ERROR',
-        message: 'Internal Service Error'
-      })
-    );
+    next(err);
   }
 }
 
 type updateKeys = 'avatarUrl' | 'passwordHash' | 'username';
-async function userEdit(req: Request, res: Response): Promise<void> {
+async function userEdit(req: Request, res: Response, next: NextFunction): Promise<void> {
   const keys = Object.keys(req.body);
   try {
     await prisma.user.findFirstOrThrow({
@@ -173,19 +155,19 @@ async function userEdit(req: Request, res: Response): Promise<void> {
     res.status(200).json(successResponse(data));
   } catch (err) {
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2025') {
+      res.status(400).json(
+        errorResponse({
+          code: 'INVALID_CREDENTIALS',
+          message: 'Your account was not found.'
+        })
+      );
       return;
     }
-    Logger.error(err);
-    res.status(500).json(
-      errorResponse({
-        code: 'SERVICE_ERROR',
-        message: 'Internal Service Error'
-      })
-    );
+    next(err);
   }
 }
 
-async function deleteUser(req: Request, res: Response): Promise<void> {
+async function deleteUser(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const user = await prisma.user.delete({
       where: {
@@ -195,13 +177,7 @@ async function deleteUser(req: Request, res: Response): Promise<void> {
     });
     res.status(200).json(successResponse(user));
   } catch (err) {
-    Logger.error(err);
-    res.status(500).json(
-      errorResponse({
-        code: 'SERVICE_ERROR',
-        message: 'Internal Service Error'
-      })
-    );
+    next(err);
   }
 }
 
