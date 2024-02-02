@@ -1,13 +1,9 @@
-import Logger from './Logger';
 import { PrismaClient } from '@prisma/client';
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({
+  log: ['info']
+});
 
-prisma
-  .$connect()
-  .then(() => Logger.info('Prisma client connected.'))
-  .catch(err => {
-    Logger.error(`Connection to database failed with error: ${err}`);
-  });
+prisma.$connect();
 
 export { prisma };
