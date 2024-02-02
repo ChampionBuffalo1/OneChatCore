@@ -4,12 +4,14 @@ import type { Request, Response, NextFunction } from 'express';
 
 const INTERNAL_SERVICE = errorResponse({
   code: 'SERVICE_ERROR',
-  message: 'Internal Service Error'
+  message: 'An unknown error occured!'
 });
 
 export function prismaHandler(err: Error, req: Request, _res: Response, next: NextFunction): void {
   if (err instanceof Prisma.PrismaClientKnownRequestError) {
-    Logger.error(`Unhandled Prisma Client Error at route ${req.method} ${req.url} with error code: ${err.code}`);
+    Logger.error(
+      `Unhandled Prisma Client Error ${err.code} at route ${req.method} ${req.url} with message: ${err.message}`
+    );
   } else if (err instanceof Prisma.PrismaClientUnknownRequestError) {
     Logger.error(`Unknown Prisma Client Error at route ${req.method} ${req.url} with message: ${err.message}`);
   } else if (err instanceof Prisma.PrismaClientRustPanicError) {
