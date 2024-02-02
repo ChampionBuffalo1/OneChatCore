@@ -24,48 +24,44 @@ model user {
 }
 
 model group {
-  id          String @id @default(cuid())
-  name        String @unique @db.VarChar(64)
-  description String @default("") @db.Text()
-
-  owner   user   @relation(fields: [ownerId], references: [id])
-  ownerId String
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  member  member[]
-  message message[]
+  id             String @id @default(cuid())
+  name           String @unique @db.VarChar(64)
+  description    String @default("") @db.Text()
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  owner          user   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId        String
+  members        member[]
+  messages       message[]
 }
 
 model role {
-  id          String @id @default(cuid())
-  color       Int?
-  name        String @db.VarChar(120)
-  permissions Int    @db.SmallInt // 16 possible permissions
-  member      member @relation(fields: [memberId], references: [id])
-  memberId    String
+  id             String @id @default(cuid())
+  color          Int?
+  name           String @db.VarChar(120)
+  permissions    Int    @db.SmallInt // 16 possible permissions
+  member         member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  memberId       String
 }
 
 model member {
-  id        String   @id @default(cuid())
-  user      user     @relation(fields: [userId], references: [id])
-  userId    String
-  group     group    @relation(fields: [groupId], references: [id])
-  groupId   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  role      role[]
+  id             String @id @default(cuid())
+  user           user   @relation(fields: [userId], references: [id])
+  userId         String
+  group          group  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  groupId        String
+  roles          role[]
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }
 
 model message {
-  id        String   @id @default(cuid())
-  text      String   @db.Text()
-  author    user     @relation(fields: [userId], references: [id])
-  group     group    @relation(fields: [groupId], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  groupId String
-  userId  String
+  id             String   @id @default(cuid())
+  text           String   @db.Text()
+  author         user     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group          group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  groupId        String
+  userId         String
 }
