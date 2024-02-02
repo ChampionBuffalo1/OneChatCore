@@ -8,9 +8,10 @@ import '@total-typescript/ts-reset';
 import Logger from './lib/Logger';
 import { PORT } from './Constants';
 import { createServer } from 'node:http';
+import { errorResponse } from './lib/response';
 import { createSocketServer } from './websocket';
 import { attachSession } from './api/middlewares';
-import { errorResponse } from './lib/response';
+import { prismaHandler, unknownHandler } from './api/middlewares/error';
 
 (async (): Promise<void> => {
   const app = express();
@@ -23,6 +24,8 @@ import { errorResponse } from './lib/response';
   app.use('/api/v1', apiRoute);
   app.get('/', (_, res) => res.sendStatus(200));
   createSocketServer(server);
+  // Error handler middlewares
+  app.use(prismaHandler, unknownHandler);
   app.all('*', (req, res) => {
     res.status(404).json(
       errorResponse({
