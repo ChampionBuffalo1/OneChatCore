@@ -1,24 +1,22 @@
 import { Router } from 'express';
+import roleRouter from './role';
 import messageRouter from './message';
-import { isAuth, isInvalidMethod, validateSchema } from '../middlewares';
-import { editGroupProps, groupName } from '../../lib/validators/groupvalidator';
-import { getGroup, joinGroup, leaveGroup, createGroup, deleteGroup, editGroup } from '../controllers/groupController';
+import { isAuth, validateSchema } from '../middlewares';
+import handleBroadcasting from '../../websocket/handleBroadcasting';
+import { groupCreateSchema } from '../../lib/validators/groupSchema';
+import { leaveGroup, createGroup, deleteGroup } from '../controller/groupController';
 
 const groupRoute = Router();
-groupRoute.use('/:groupId/messages', messageRouter);
+// All routes and subroutes are auth protected
+groupRoute.use(isAuth);
 
-groupRoute.get('/', isAuth, getGroup);
+groupRoute.use('/:id/role/:role', roleRouter);
+groupRoute.use('/:id/message', messageRouter);
 
-groupRoute.post('/:groupId/join', isAuth, joinGroup);
+groupRoute.post('/:id/leave', leaveGroup);
+groupRoute.delete('/:id/delete', deleteGroup);
+groupRoute.post('/create', validateSchema(groupCreateSchema), createGroup);
 
-groupRoute.post('/:groupId/leave', isAuth, leaveGroup);
+groupRoute.use(handleBroadcasting);
 
-groupRoute.post('/:groupId/edit', isAuth, validateSchema(editGroupProps), editGroup);
-
-groupRoute.post('/create', isAuth, validateSchema(groupName), createGroup);
-
-groupRoute.post('/:groupId/delete', isAuth, deleteGroup);
-
-groupRoute.all('*', isInvalidMethod);
-
-export { groupRoute };
+export default groupRoute;
