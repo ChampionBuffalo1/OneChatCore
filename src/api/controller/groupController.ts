@@ -77,7 +77,7 @@ async function leaveGroup(req: Request, res: Response, next: NextFunction): Prom
   try {
     // The `id` of the member belonging in the group while ensuring the member isn't the owner
     const [data] = await prisma.$queryRaw<Pick<member, 'id'>[]>`
-          SELECT m.id, g."ownerId" FROM "member" AS m 
+          SELECT m.id FROM "member" AS m 
           LEFT JOIN "group" AS g ON g.id = m."groupId" AND m."userId" = ${authUserId} 
           WHERE g."ownerId" <> ${authUserId} AND g.id = ${groupId}`;
 
