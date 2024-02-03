@@ -89,6 +89,11 @@ async function useInvite(req: Request, res: Response, next: NextFunction): Promi
         data: {
           groupId: invite.groupId,
           userId: authUserId
+        },
+        select: {
+          id: true,
+          group: { select: { id: true, name: true } },
+          user: { select: { id: true, username: true } }
         }
       });
 
@@ -107,7 +112,12 @@ async function useInvite(req: Request, res: Response, next: NextFunction): Promi
       return member;
     });
 
+    req.socketPayload = {
+      op: 'GROUP_JOIN',
+      d: member
+    };
     res.status(200).json(successResponse(member));
+    next();
   } catch (err) {
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2025') {
       res.status(200).json(
