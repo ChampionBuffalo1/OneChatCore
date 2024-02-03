@@ -5,7 +5,7 @@ import type { Request, Response, NextFunction } from 'express';
  * middleware to make sure only the authorized user can access protected route
  */
 function isAuth(req: Request, res: Response, next: NextFunction): void {
-  if (req.payload.userId) {
+  if (req.payload?.userId) {
     next();
   } else {
     res.status(400).json(
