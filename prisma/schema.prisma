@@ -17,22 +17,33 @@ model user {
   avatarUrl    String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-
-  group   group[]
-  member  member[]
-  message message[]
+  group        group[]
+  member       member[]
+  message      message[]
 }
 
 model group {
-  id             String @id @default(cuid())
-  name           String @unique @db.VarChar(64)
-  description    String @default("") @db.Text()
+  id             String   @id @default(cuid())
+  name           String   @unique @db.VarChar(64)
+  description    String   @default("") @db.Text()
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
-  owner          user   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  owner          user     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   ownerId        String
+  invites        invite[]
   members        member[]
   messages       message[]
+}
+
+model invite {
+  id             String   @id @default(cuid())
+  limit          Int?     @db.SmallInt  
+  inviter        member     @relation(fields: [inviterId], references: [id], onDelete: Cascade)
+  inviterId      String
+  group          group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  groupId        String 
+  expiresAt      DateTime? 
+  createdAt      DateTime @default(now())
 }
 
 model role {
@@ -45,12 +56,13 @@ model role {
 }
 
 model member {
-  id             String @id @default(cuid())
-  user           user   @relation(fields: [userId], references: [id])
+  id             String   @id @default(cuid())
+  user           user     @relation(fields: [userId], references: [id])
   userId         String
-  group          group  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  group          group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
   groupId        String
   roles          role[]
+  invite         invite[]
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 }
