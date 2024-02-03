@@ -24,8 +24,7 @@ export function prismaHandler(err: Error, req: Request, _res: Response, next: Ne
     );
   } else {
     Logger.error(
-      `Unknown Error on route "${req.method} ${req.url}": `,
-      err.message + '\n' + (err.stack !== undefined ? err.stack : '')
+      `Unknown Error on route "${req.method} ${req.url}": ${err.message + '\n' + (err.stack !== undefined ? err.stack : '')}`
     );
   }
   next(err);
