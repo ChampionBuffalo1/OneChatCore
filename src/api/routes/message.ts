@@ -1,17 +1,17 @@
 import { Router } from 'express';
-import { isAuth, isInvalidMethod, validateSchema } from '../middlewares';
-import { messageId, messageQuery, messageText, messageUpdate } from '../../lib/validators/msgvalidator';
-import { createMessage, deleteMessage, editMessage, getMessage } from '../controllers/messageController';
+import { validateSchema } from '../middlewares';
+import { messageId, messageQuery, messageText, messageUpdate } from '../../lib/validators/messageSchema';
+import { createMessage, deleteMessage, editMessage, getMessage } from '../controller/messageController';
 
 // https://expressjs.com/en/4x/api.html#express.router
 const messageRouter = Router({
   mergeParams: true
 });
+// All request to these routes are proctected by `isAuth` middleware in group route
 
 messageRouter.post('/', validateSchema(messageQuery), getMessage);
-messageRouter.post('/edit', isAuth, validateSchema(messageUpdate), editMessage);
-messageRouter.post('/create', isAuth, validateSchema(messageText), createMessage);
-messageRouter.post('/delete', isAuth, validateSchema(messageId), deleteMessage);
+messageRouter.post('/edit', validateSchema(messageUpdate), editMessage);
+messageRouter.post('/create', validateSchema(messageText), createMessage);
+messageRouter.post('/delete', validateSchema(messageId), deleteMessage);
 
-messageRouter.all('*', isInvalidMethod);
 export default messageRouter;
