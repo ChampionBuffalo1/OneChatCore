@@ -25,13 +25,9 @@ async function loginUser(req: Request, res: Response, next: NextFunction): Promi
 
     const passwordMatch = await bcrypt.compare(password, passwordHash);
     if (!passwordMatch) {
-      res.status(400).json(
-        errorResponse({
-          message: 'Invalid username or password',
-          code: 'INVALID_CREDENTIALS'
-        })
-      );
-      return;
+      throw new Error('INVALID_CREDENTIALS', {
+        cause: 'Invalid username or password'
+      });
     }
     const access_token = generateJwt({
       userId: data.id
@@ -44,6 +40,14 @@ async function loginUser(req: Request, res: Response, next: NextFunction): Promi
           param: 'username',
           code: 'INVALID_USERNAME',
           message: 'Username not found.'
+        })
+      );
+      return;
+    } else if (err instanceof Error && err.message === 'INVALID_CREDENTIALS') {
+      res.status(400).json(
+        errorResponse({
+          code: err.message,
+          message: err.cause as string
         })
       );
       return;
@@ -104,64 +108,57 @@ async function getSelf(req: Request, res: Response, next: NextFunction): Promise
   }
 }
 
-type updateKeys = 'avatarUrl' | 'passwordHash' | 'username';
+type updateKeys = 'passwordHash' | 'username';
 async function userEdit(req: Request, res: Response, next: NextFunction): Promise<void> {
   const keys = Object.keys(req.body);
   try {
-    await prisma.user.findFirstOrThrow({
-      where: {
-        id: req.payload.userId
-      }
-    });
     const updatedUser: Partial<Record<updateKeys, string>> = {};
     for (const key of keys) {
       switch (key) {
-        case 'avatarUrl': {
-          updatedUser['avatarUrl'] = req.body.avatarUrl;
-          break;
-        }
         case 'username': {
-          const username: string = req.body.username;
-          const otherUser = await prisma.user.count({ where: { username } });
-          if (otherUser !== 0) {
-            res.status(400).json(
-              errorResponse({
-                param: 'username',
-                code: 'RESOURCE_EXISTS',
-                message: 'Username already taken.'
-              })
-            );
-            return;
-          } else {
-            updatedUser['username'] = username;
-          }
+          updatedUser['username'] = req.body.username;
           break;
         }
         case 'password': {
-          const passwordHash = await bcrypt.hash(req.body.password, bcryptSaltRounds);
-          updatedUser['passwordHash'] = passwordHash;
+          updatedUser['passwordHash'] = await bcrypt.hash(req.body.password, bcryptSaltRounds);
           break;
         }
       }
     }
 
     const data = await prisma.user.update({
-      where: {
-        id: req.payload.userId
-      },
+      where: { id: req.payload.userId },
       data: updatedUser,
       select: responseStruct
     });
     res.status(200).json(successResponse(data));
+    if ('username' in keys) {
+      req.socketPayload = {
+        op: 'USERNAME_UPDATE',
+        d: data
+      };
+      next();
+    }
   } catch (err) {
-    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2025') {
-      res.status(400).json(
-        errorResponse({
-          code: 'INVALID_CREDENTIALS',
-          message: 'Your account was not found.'
-        })
-      );
-      return;
+    if (err instanceof Prisma.PrismaClientKnownRequestError) {
+      if (err.code === 'P2025') {
+        res.status(400).json(
+          errorResponse({
+            code: 'INVALID_CREDENTIALS',
+            message: 'Your account was not found.'
+          })
+        );
+        return;
+      } else if (err.code === 'P2002') {
+        res.status(400).json(
+          errorResponse({
+            param: 'username',
+            code: 'RESOURCE_EXISTS',
+            message: 'Username already taken.'
+          })
+        );
+        return;
+      }
     }
     next(err);
   }
