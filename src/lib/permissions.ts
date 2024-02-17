@@ -3,10 +3,10 @@
 export const Permissions = {
   READ_MESSAGES: 1 << 0, // 000 00 001
   WRITE_MESSAGES: 1 << 1,
-  MANAGE_MESSAGES: 1 << 2,
+  MANAGE_MESSAGES: (1 << 2) | (1 << 1) | (1 << 0),
 
-  ASSIGN_ROLES: 1 << 3,
-  MANAGE_ROLES: 1 << 4,
+  ASSIGN_ROLES: 1 << 3, // 1
+  MANAGE_ROLES: (1 << 4) | (1 << 3), // manage role can also assign roles
 
   INVITE_MEMBER: 1 << 5,
   KICK_MEMBER: 1 << 6,
