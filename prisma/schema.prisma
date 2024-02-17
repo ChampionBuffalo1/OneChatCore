@@ -25,6 +25,7 @@ model user {
 model group {
   id             String   @id @default(cuid())
   name           String   @unique @db.VarChar(64)
+  iconUrl        String?
   description    String   @default("") @db.Text()
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
@@ -47,17 +48,17 @@ model invite {
 }
 
 model role {
-  id             String @id @default(cuid())
+  id             String  @id @default(cuid())
   color          Int?
-  name           String @db.VarChar(120)
-  permissions    Int    @db.SmallInt // 16 possible permissions
-  member         member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  name           String  @db.VarChar(120)
+  permissions    Int     @db.SmallInt // 16 possible permissions
+  member         member? @relation(fields: [memberId], references: [id], onDelete: Cascade)
   memberId       String
 }
 
 model member {
   id             String   @id @default(cuid())
-  user           user     @relation(fields: [userId], references: [id])
+  user           user     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId         String
   group          group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
   groupId        String
