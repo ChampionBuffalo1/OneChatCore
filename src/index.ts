@@ -19,7 +19,13 @@ import { prismaHandler, unknownHandler } from './api/middlewares/error';
   app
     .disable('x-powered-by')
     .set('trust proxy', 1)
-    .use(cors(), helmet(), express.json(), express.urlencoded({ extended: true }), attachSession);
+    .use(
+      helmet(),
+      cors(),
+      express.json({ limit: '2mb' }),
+      express.urlencoded({ extended: true, limit: "100kb" }),
+      attachSession
+    );
 
   app.use('/api/v1', apiRoute);
   app.get('/', (_, res) => res.sendStatus(200));
