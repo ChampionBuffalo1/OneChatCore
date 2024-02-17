@@ -1,6 +1,8 @@
+import fs from 'node:fs';
 import { promisify } from 'node:util';
-import { RESULT_PER_PAGE } from '../Constants';
+import { v2 as cloudinary } from 'cloudinary';
 import { PaginatedResponse } from '../typings';
+import { CLOUDINARY_FOLDER_NAME, RESULT_PER_PAGE } from '../Constants';
 
 const sleep = promisify(setTimeout);
 
@@ -35,4 +37,26 @@ function paginatedParameters(query: string, totalRecords: number, resultPerPage 
   };
 }
 
-export { sleep, range, paginatedParameters, expBackOff };
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+  secure: true
+});
+
+async function cloudinaryUpload(filePath: string): Promise<string> {
+  try {
+    const uploadedFile = await cloudinary.uploader.upload(filePath, {
+      resource_type: 'image',
+      folder: CLOUDINARY_FOLDER_NAME,
+      allowed_formats: ['jpg', 'png', 'gif', 'webp']
+    });
+    return uploadedFile.secure_url;
+  } catch (err) {
+    throw err;
+  } finally {
+    fs.unlinkSync(filePath);
+  }
+}
+
+export { sleep, range, cloudinaryUpload, paginatedParameters, expBackOff };
