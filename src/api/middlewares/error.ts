@@ -6,6 +6,11 @@ const INTERNAL_SERVICE = errorResponse({
   code: 'SERVICE_ERROR',
   message: 'An unknown error occured!'
 });
+// Occurs when `content-type` header is set to `application/json` and parsing of JSON fails
+const INVALID_REQUEST_BODY = errorResponse({
+  code: 'INVALID_FORMAT',
+  message: 'There was an error while parsing the json request body'
+});
 
 export function prismaHandler(err: Error, req: Request, _res: Response, next: NextFunction): void {
   if (err instanceof Prisma.PrismaClientKnownRequestError) {
@@ -30,6 +35,10 @@ export function prismaHandler(err: Error, req: Request, _res: Response, next: Ne
   next(err);
 }
 
-export function unknownHandler(_err: Error, _req: Request, res: Response, _next: NextFunction): void {
+export function unknownHandler(err: Error, _req: Request, res: Response, _next: NextFunction): void {
+  if (err instanceof SyntaxError && err.message.includes('JSON')) {
+    res.status(400).json(INVALID_REQUEST_BODY);
+    return;
+  }
   res.status(500).json(INTERNAL_SERVICE);
 }
