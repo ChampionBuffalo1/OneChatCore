@@ -10,7 +10,7 @@ const groupRoute = Router();
 // All routes and subroutes are auth protected
 groupRoute.use(isAuth);
 
-groupRoute.use('/:id/role/:role', roleRouter);
+groupRoute.use('/:id/role', roleRouter);
 groupRoute.use('/:id/message', messageRouter);
 
 groupRoute.post('/:id/leave', leaveGroup);
