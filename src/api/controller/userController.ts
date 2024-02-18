@@ -2,7 +2,7 @@ import bcrypt from 'bcrypt';
 import { Prisma } from '@prisma/client';
 import { bcryptSaltRounds } from '../../Constants';
 import type { NextFunction, Request, Response } from 'express';
-import { prisma, generateJwt, errorResponse, successResponse } from '../../lib';
+import { prisma, generateJwt, errorResponse, successResponse, cloudinaryUpload } from '../../lib';
 
 const responseStruct = {
   id: true,
@@ -178,4 +178,39 @@ async function deleteUser(req: Request, res: Response, next: NextFunction): Prom
   }
 }
 
-export { loginUser, signupUser, getSelf, userEdit, deleteUser };
+async function userAvatarUpload(req: Request, res: Response, next: NextFunction): Promise<void> {
+  const authUserId = req.payload.userId;
+  try {
+    const file = req.file;
+    if (!file) {
+      res.status(400).json(
+        errorResponse({
+          param: 'avatar',
+          code: 'FILE_NOT_FOUND',
+          message: 'No file was provided for avatar upload'
+        })
+      );
+      return;
+    }
+    const secure_url = await cloudinaryUpload(file.path);
+
+    await prisma.user.update({
+      where: { id: authUserId },
+      data: { avatarUrl: secure_url }
+    });
+
+    res.json(successResponse({ url: secure_url }));
+    req.socketPayload = {
+      op: 'AVATAR_CHANGE',
+      d: {
+        id: authUserId,
+        url: secure_url
+      }
+    };
+    next();
+  } catch (err) {
+    next(err);
+  }
+}
+
+export { loginUser, signupUser, getSelf, userEdit, deleteUser, userAvatarUpload };

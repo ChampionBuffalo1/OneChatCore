@@ -13,7 +13,8 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN yarn build \
-    && mkdir logs 
+    && mkdir logs \
+    && mkdir uploads
 
 FROM base AS runner
 WORKDIR /app
@@ -30,6 +31,7 @@ COPY prisma ./
 
 COPY --from=builder --chown=core:nodejs /app/dist ./dist
 COPY --from=builder --chown=core:nodejs /app/logs ./logs
+COPY --from=builder --chown=core:nodejs /app/uploads ./uploads
 
 EXPOSE 3000
 CMD ["yarn", "start"]

@@ -38,11 +38,12 @@ function paginatedParameters(query: string, totalRecords: number, resultPerPage 
 }
 
 cloudinary.config({
+  secure: true,
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
-  secure: true
 });
+
 
 async function cloudinaryUpload(filePath: string): Promise<string> {
   try {
