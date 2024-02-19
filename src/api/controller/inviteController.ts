@@ -92,7 +92,14 @@ async function useInvite(req: Request, res: Response, next: NextFunction): Promi
         },
         select: {
           id: true,
-          group: { select: { id: true, name: true } },
+          group: {
+            select: {
+              id: true,
+              name: true,
+              iconUrl: true,
+              description: true
+            }
+          },
           user: { select: { id: true, username: true } }
         }
       });
