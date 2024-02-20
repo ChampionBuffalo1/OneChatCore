@@ -155,7 +155,7 @@ async function createMessage(req: Request, res: Response, next: NextFunction): P
         errorResponse({
           code: 'INVALID_REQUEST',
           // No group of which current member is an member of
-          message: 'No group found!'
+          message: 'Group not found!'
         })
       );
       return;
