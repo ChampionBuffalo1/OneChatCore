@@ -1,4 +1,3 @@
-import './lib/db';
 import cors from 'cors';
 import 'dotenv-safe/config';
 import apiRoute from './api';
@@ -23,7 +22,7 @@ import { prismaHandler, unknownHandler } from './api/middlewares/error';
       helmet(),
       cors(),
       express.json({ limit: '2mb' }),
-      express.urlencoded({ extended: true, limit: "100kb" }),
+      express.urlencoded({ extended: true, limit: '100kb' }),
       attachSession
     );
 
