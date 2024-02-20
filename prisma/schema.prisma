@@ -47,25 +47,19 @@ model invite {
   createdAt      DateTime @default(now())
 }
 
-model role {
-  id             String  @id @default(cuid())
-  color          Int?
-  name           String  @db.VarChar(120)
-  permissions    Int     @db.SmallInt // 16 possible permissions
-  member         member? @relation(fields: [memberId], references: [id], onDelete: Cascade)
-  memberId       String
-}
-
 model member {
   id             String   @id @default(cuid())
   user           user     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId         String
   group          group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
   groupId        String
-  roles          role[]
   invite         invite[]
+  permissions    Int      @db.SmallInt // 16 possible permissions
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+  
+  // Composite index over groupId, userId
+  @@index([groupId, userId])
 }
 
 model message {
