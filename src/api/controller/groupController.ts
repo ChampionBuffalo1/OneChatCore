@@ -1,7 +1,7 @@
 import { Prisma, member } from '@prisma/client';
-import { setPermission } from '../../lib/permissions';
 import type { NextFunction, Request, Response } from 'express';
-import { errorResponse, paginatedParameters, prisma, successResponse } from '../../lib';
+import { checkPermission, setPermission } from '../../lib/permissions';
+import { cloudinaryUpload, errorResponse, paginatedParameters, prisma, successResponse } from '../../lib';
 
 const BasicInfo = {
   id: true,
@@ -194,4 +194,76 @@ async function getGroups(req: Request, res: Response, next: NextFunction): Promi
   }
 }
 
-export { getGroups, createGroup, leaveGroup, deleteGroup };
+async function groupIconChange(req: Request, res: Response, next: NextFunction): Promise<void> {
+  const authUserId = req.payload.userId;
+  const groupId = req.params.id;
+  try {
+    const file = req.file;
+    if (!file) {
+      res.status(400).json(
+        errorResponse({
+          param: 'icon',
+          code: 'FILE_NOT_FOUND',
+          message: 'No file was provided for icon upload'
+        })
+      );
+      return;
+    }
+
+    const url = prisma.$transaction(async tx => {
+      const member = await tx.member.findFirstOrThrow({
+        where: {
+          groupId,
+          userId: authUserId
+        },
+        select: {
+          permissions: true
+        }
+      });
+
+      if (!checkPermission(member.permissions, 'MANAGE_GROUP')) {
+        throw new Error('INVALID_PERMISSION', {
+          cause: "You don't have permissions required to change this resource."
+        });
+      }
+
+      const secure_url = await cloudinaryUpload(file.path);
+      await tx.group.update({
+        where: { id: groupId },
+        data: { iconUrl: secure_url }
+      });
+      return secure_url;
+    });
+
+    res.json(successResponse({ url }));
+    req.socketPayload = {
+      op: 'ICON_CHANGE',
+      d: {
+        url,
+        id: groupId
+      }
+    };
+    next();
+  } catch (err) {
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2025') {
+      res.status(400).json(
+        errorResponse({
+          code: 'INVALID_REQUEST',
+          message: 'Group not found!'
+        })
+      );
+      return;
+    } else if (err instanceof Error) {
+      res.status(400).json(
+        errorResponse({
+          code: err.message,
+          message: err.cause as string
+        })
+      );
+      return;
+    }
+    next(err);
+  }
+}
+
+export { getGroups, createGroup, leaveGroup, deleteGroup, groupIconChange };
