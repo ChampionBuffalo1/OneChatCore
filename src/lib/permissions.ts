@@ -1,17 +1,16 @@
-//  000     00       000
-// GROUP   ROLE    MESSAGE
+//  000       0        000
+// GROUP  PERMISSION  MESSAGE
 export const Permissions = {
   READ_MESSAGES: 1 << 0, // 000 00 001
   WRITE_MESSAGES: 1 << 1,
   MANAGE_MESSAGES: (1 << 2) | (1 << 1) | (1 << 0),
 
-  ASSIGN_ROLES: 1 << 3, // 1
-  MANAGE_ROLES: (1 << 4) | (1 << 3), // manage role can also assign roles
+  CHANGE_PERMISSION: 1 << 3, // 1
 
-  INVITE_MEMBER: 1 << 5,
-  KICK_MEMBER: 1 << 6,
-  MANAGE_GROUP: 1 << 7, // modify group name, desc etc
-  ADMINISTRATOR: (1 << 7) - 1 // 111 11 111
+  INVITE_MEMBER: 1 << 4,
+  KICK_MEMBER: 1 << 5,
+  MANAGE_GROUP: 1 << 6, // modify group name, desc etc
+  ADMINISTRATOR: (1 << 6) - 1 // 111 11 111
 };
 
 type AllPermissions = keyof typeof Permissions;
