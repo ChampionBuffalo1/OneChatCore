@@ -1,25 +1,17 @@
 import { z } from 'zod';
 
-const messageId = z.object({
-  id: z.string({
-    required_error: 'Id is missing'
-  })
+const messageCreate = z.object({
+  text: z.string().min(1)
 });
 
-const messageText = z.object({
-  text: z.string({
-    required_error: 'Message text is missing'
-  })
+const messageEdit = z.object({
+  id: z.string(),
+  text: z.string().min(1)
 });
 
-const messageQuery = z
-  .object({
-    after: z.date().optional(),
-    before: z.date().optional(),
-    limit: z.number().optional()
-  })
-  .merge(messageId);
+const messageFilter = z.object({
+  before: z.string().datetime().optional(),
+  after: z.string().datetime().optional()
+});
 
-const messageUpdate = messageText.merge(messageId);
-
-export { messageQuery, messageUpdate, messageId, messageText };
+export { messageCreate, messageEdit, messageFilter };

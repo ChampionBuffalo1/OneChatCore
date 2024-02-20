@@ -12,9 +12,9 @@ type TokenProperty = {
   access_token: string;
 };
 type PaginationProperty = {
-  page: number;
-  pages: number;
-  total: number;
+  currentPage: number;
+  totalPages: number;
+  totalRecords: number;
 };
 type MetaProperties = TokenProperty | PaginationProperty;
 

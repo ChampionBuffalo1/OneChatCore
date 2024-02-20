@@ -1,8 +1,21 @@
 import { Prisma, member } from '@prisma/client';
 import { setPermission } from '../../lib/permissions';
 import type { NextFunction, Request, Response } from 'express';
-import { errorResponse, prisma, successResponse } from '../../lib';
+import { errorResponse, paginatedParameters, prisma, successResponse } from '../../lib';
 
+const BasicInfo = {
+  id: true,
+  name: true,
+  iconUrl: true,
+  owner: {
+    select: {
+      id: true,
+      username: true,
+      avatarUrl: true
+    }
+  },
+  description: true
+};
 async function createGroup(req: Request, res: Response, next: NextFunction): Promise<void> {
   const { name, description }: Record<string, string> = req.body;
   const authUserId = req.payload.userId;
@@ -16,7 +29,8 @@ async function createGroup(req: Request, res: Response, next: NextFunction): Pro
           description: description || '',
           members: {
             create: {
-              userId: authUserId
+              userId: authUserId,
+              permissions: setPermission(0, 'ADMINISTRATOR')
             }
           }
         },
@@ -32,20 +46,6 @@ async function createGroup(req: Request, res: Response, next: NextFunction): Pro
         }
       });
       const { members, ...group } = createInfo;
-
-      // Creating the admin role giving it to the first member (aka the person who created it)
-      await tx.role.create({
-        data: {
-          name: 'Administrator',
-          permissions: setPermission(0, 'ADMINISTRATOR'),
-          member: {
-            connect: {
-              id: members[0].id
-            }
-          }
-        }
-      });
-
       return group;
     });
 
@@ -153,16 +153,45 @@ async function deleteGroup(req: Request, res: Response, next: NextFunction): Pro
   }
 }
 
-const BasicInfo = {
-  id: true,
-  name: true,
-  owner: {
-    select: {
-      id: true,
-      username: true,
-      avatarUrl: true
-    }
-  },
-  description: true
-};
-export { createGroup, leaveGroup, deleteGroup };
+async function getGroups(req: Request, res: Response, next: NextFunction): Promise<void> {
+  const userId = req.payload.userId;
+  try {
+    const [groups, meta] = await prisma.$transaction(async tx => {
+      const total = await tx.member.count({
+        where: { userId }
+      });
+      const { skip, take, currentPage, totalPages } = paginatedParameters(req.query.page as string, total);
+
+      const groups = await tx.member.findMany({
+        where: { userId },
+        select: {
+          id: true,
+          group: {
+            select: {
+              id: true,
+              name: true,
+              iconUrl: true,
+              description: true
+            }
+          }
+        },
+        take,
+        skip
+      });
+      return [
+        groups,
+        {
+          totalRecords: total,
+          currentPage,
+          totalPages
+        }
+      ];
+    });
+
+    res.status(200).json(successResponse(groups, meta));
+  } catch (err) {
+    next(err);
+  }
+}
+
+export { getGroups, createGroup, leaveGroup, deleteGroup };

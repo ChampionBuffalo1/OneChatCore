@@ -1,7 +1,7 @@
 import { Prisma } from '@prisma/client';
-import { checkPermission } from '../../lib/permissions';
 import type { Request, Response, NextFunction } from 'express';
 import { errorResponse, prisma, successResponse } from '../../lib';
+import { checkPermission, setPermission } from '../../lib/permissions';
 
 async function createInvite(req: Request, res: Response, next: NextFunction): Promise<void> {
   const groupId = req.body.groupId,
@@ -16,12 +16,11 @@ async function createInvite(req: Request, res: Response, next: NextFunction): Pr
         },
         select: {
           id: true,
-          roles: true
+          permissions: true
         }
       });
 
-      const requiredRole = me.roles.find(({ permissions }) => checkPermission(permissions, 'INVITE_MEMBER'));
-      if (!requiredRole) {
+      if (!checkPermission(me.permissions, 'INVITE_MEMBER')) {
         throw new Error('ACTION_NOT_ALLOWED', {
           cause: "You don't have permission to perform this action"
         });
@@ -88,7 +87,8 @@ async function useInvite(req: Request, res: Response, next: NextFunction): Promi
       const member = await tx.member.create({
         data: {
           groupId: invite.groupId,
-          userId: authUserId
+          userId: authUserId,
+          permissions: setPermission(0, ['READ_MESSAGES', 'WRITE_MESSAGES'])
         },
         select: {
           id: true,
