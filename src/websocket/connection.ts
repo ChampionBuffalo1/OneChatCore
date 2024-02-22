@@ -1,10 +1,7 @@
 import store from './Store';
 import { WebSocket } from 'ws';
-import { handleMessage } from './message';
-import { WsMessageSchema } from './zschema';
-import { getUserMetadata } from './usermeta';
-import { manualClose, sendMessage } from './utils';
 import { Logger, WsAuthSchema, getJwtPayload } from '../lib';
+import { manualClose, sendMessage, getUserMetadata } from './utils';
 
 const maxwait = 30; // in seconds
 
@@ -14,55 +11,41 @@ async function handshake(message: string, uuid: string) {
     if (authSchema.success) {
       const { token } = authSchema.data;
       // User auth verification and socket upgrade
-      const payload = await getJwtPayload(token);
-      if (payload.data.userId) {
-        const token = payload.data.userId;
-        const metadata = await getUserMetadata(token);
-        const socket = store.upgradeSocket(uuid, token);
-        sendMessage(token, {
-          message: 'Authenticated successfully',
-          data: metadata
-        });
-	// TODO: Fix the type
-        for (const { id } of (metadata as {id: string}[])) {
-          store.setGroupConnection(id, socket);
+      const payload = getJwtPayload(token);
+      if (payload.userId) {
+        const metadata = await getUserMetadata(payload.userId);
+        const socket = store.upgradeSocket(uuid, payload.userId);
+        sendMessage(payload.userId, { data: metadata, message: 'Authenticated successfully' });
+
+        const groupIds = metadata.map(group => group.id);
+        for (const id of groupIds) {
+          store.setGroupConnection(id, payload.userId);
         }
+
+        // Initial data send
+        socket.send(JSON.stringify(metadata));
 
         // Removing old tmp listeners
         //  0th listener is setup by `ws` package itself
         const listener = socket.listeners('close')[1] as (this: WebSocket, ...args: unknown[]) => void;
         socket.off('close', listener);
         socket.removeAllListeners('message');
-
-        socket.on('message', async (buffer: Buffer) => {
-          const messageSchema = await WsMessageSchema.spa(JSON.parse(buffer.toString()));
-          if (messageSchema.success) handleMessage(messageSchema.data, token);
-          else sendMessage(token, { ...messageSchema.error });
-        });
+        // Leaving the below as an example (check git history for better example)
+        // socket.on('message', async (buffer: Buffer) => {});
         socket.on('close', async (code: number, reason: string) => {
           if (code !== manualClose) Logger.info('Websocket connection closed with code: ' + code + ' reason:' + reason);
-          store.removeConnection(token);
+          store.removeConnection(payload.userId);
+          for (const id of groupIds) {
+            store.removeGroupConnection(id, payload.userId);
+          }
         });
       }
     } else {
-      // Schema validation error
-      sendMessage(
-        uuid,
-        {
-          error: authSchema.error
-        },
-        true
-      );
+      sendMessage(uuid, { error: authSchema.error }, true);
     }
   } catch (err) {
     if ((err as Error).message === 'JwtError') {
-      sendMessage(
-        uuid,
-        {
-          error: (err as Error).cause + '\nGenerate a new token and try again'
-        },
-        true
-      );
+      sendMessage(uuid, { error: (err as Error).cause + '\nGenerate a new token and try again' }, true);
     }
   }
 }

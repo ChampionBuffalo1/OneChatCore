@@ -1,4 +1,5 @@
 import store from './Store';
+import { prisma } from '../lib';
 
 // https://datatracker.ietf.org/doc/html/rfc6455#section-7.4.1
 const manualClose = 1010;
@@ -13,5 +14,59 @@ function sendMessage(uuid: string, content: BufStr | Record<string, unknown>, us
   socket.send(message);
   return true;
 }
-//   socket.send(message, { binary: isBinary });
-export { sendMessage, manualClose };
+
+async function getUserMetadata(userId: string): Promise<MetaInfo> {
+  const metadata = await prisma.member.findMany({
+    where: { userId },
+    select: {
+      group: {
+        select: {
+          id: true,
+          name: true,
+          iconUrl: true,
+          description: true,
+          messages: {
+            select: {
+              id: true,
+              text: true,
+              author: {
+                select: {
+                  id: true,
+                  username: true,
+                  avatarUrl: true
+                }
+              },
+              createdAt: true,
+              updatedAt: true
+            },
+            take: 40,
+            orderBy: {
+              createdAt: 'desc'
+            }
+          }
+        }
+      }
+    }
+  });
+  return metadata.map(data => data.group);
+}
+
+export { sendMessage, manualClose, getUserMetadata };
+
+type MetaInfo = Array<{
+  id: string;
+  name: string;
+  iconUrl: string | null;
+  description: string | null;
+  messages: Array<{
+    id: string;
+    text: string;
+    author: {
+      id: string;
+      username: string;
+      avatarUrl: string | null;
+    };
+    createdAt: Date;
+    updatedAt: Date;
+  }>;
+}>;
