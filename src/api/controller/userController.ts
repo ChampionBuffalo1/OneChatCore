@@ -113,32 +113,18 @@ async function userEdit(req: Request, res: Response, next: NextFunction): Promis
   const keys = Object.keys(req.body);
   try {
     const updatedUser: Partial<Record<updateKeys, string>> = {};
-    for (const key of keys) {
-      switch (key) {
-        case 'username': {
-          updatedUser['username'] = req.body.username;
-          break;
-        }
-        case 'password': {
-          updatedUser['passwordHash'] = await bcrypt.hash(req.body.password, bcryptSaltRounds);
-          break;
-        }
-      }
+    if (keys.includes('username')) {
+      updatedUser['username'] = req.body.username;
     }
-
+    if (keys.includes('password')) {
+      updatedUser['passwordHash'] = await bcrypt.hash(req.body.password, bcryptSaltRounds);
+    }
     const data = await prisma.user.update({
       where: { id: req.payload.userId },
       data: updatedUser,
       select: responseStruct
     });
     res.status(200).json(successResponse(data));
-    if ('username' in keys) {
-      req.socketPayload = {
-        op: 'USERNAME_UPDATE',
-        d: data
-      };
-      next();
-    }
   } catch (err) {
     if (err instanceof Prisma.PrismaClientKnownRequestError) {
       if (err.code === 'P2025') {
