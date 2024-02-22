@@ -44,17 +44,15 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-async function cloudinaryUpload(filePath: string): Promise<string> {
+async function cloudinaryUpload(filePath: string, width = 400, height = 400): Promise<string> {
   try {
     const uploadedFile = await cloudinary.uploader.upload(filePath, {
       resource_type: 'image',
       folder: CLOUDINARY_FOLDER_NAME,
       allowed_formats: ['jpg', 'png', 'gif', 'webp'],
-      transformation: [{ quality: 'auto:eco', fetch_format: 'auto' }]
+      transformation: [{ quality: 'auto:eco', fetch_format: 'auto', width, height }]
     });
     return uploadedFile.secure_url;
-  } catch (err) {
-    throw err;
   } finally {
     fs.unlinkSync(filePath);
   }
