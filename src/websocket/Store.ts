@@ -1,16 +1,19 @@
 import { WebSocket } from 'ws';
-import { maxWsCon } from '../Constants';
-import { manualClose } from './utils';
 import { randomUUID } from 'crypto';
+import { manualClose } from './utils';
+import { maxWsCon } from '../Constants';
 
 class SocketStore {
-  private groupSocket: Map<string, Set<WebSocket>> = new Map();
+  // group_id => user_id
+  private groupSocket: Map<string, Set<string>> = new Map();
+  // user_id => Socket
   private authSocket: Map<string, WebSocket> = new Map();
+  // nano_id => Socket (Removed after 30s if not authenticated)
   private tmpSocket: Map<string, WebSocket> = new Map();
   constructor(private readonly limit: number) {}
   // For tmp socket connection that will be removed after some amount of times if not authenticated
   setTmpConnection(ws: WebSocket): string {
-    const uuid = randomUUID().substring(0, 16);
+    const uuid = randomUUID();
     this.tmpSocket.set(uuid, ws);
     return uuid;
   }
@@ -38,22 +41,29 @@ class SocketStore {
     if (this.authSocket.size > this.limit) throw new Error('Maximum concurrent websocket limit reached.');
     this.authSocket.set(uuid, ws);
   }
-
   removeConnection(uuid: string): boolean {
     if (this.authSocket.size == 0) return false;
     const ws = this.authSocket.get(uuid);
     if (ws?.CLOSED) ws.close(manualClose);
     return this.authSocket.delete(uuid);
   }
-  setGroupConnection(groupId: string, ws: WebSocket): void {
-    if (!this.groupSocket.has(groupId)) this.groupSocket.set(groupId, new Set());
-    this.groupSocket.get(groupId)!.add(ws);
-    // Remove the socket from the group when it closes
-    ws.on('close', () => this.groupSocket.get(groupId)?.delete(ws));
+
+  setGroupConnection(groupId: string, userId: string): void {
+    if (!this.groupSocket.has(groupId)) {
+      this.groupSocket.set(groupId, new Set());
+    }
+    this.groupSocket.get(groupId)!.add(userId);
   }
 
-  getGroupConnections(groupId: string): Set<WebSocket> | undefined {
+  getGroupConnections(groupId: string): Set<string> | undefined {
     return this.groupSocket.get(groupId);
+  }
+
+  removeGroupConnection(groupId: string, userId: string): void {
+    if (!this.groupSocket.has(groupId)) {
+      return;
+    }
+    this.groupSocket.get(groupId)!.delete(userId);
   }
 
   removeGroup(groupId: string): boolean {
@@ -61,6 +71,7 @@ class SocketStore {
   }
 
   reset(): void {
+    this.groupSocket.clear();
     this.authSocket.forEach(ws => ws.close(manualClose));
     this.authSocket.clear();
     this.tmpSocket.forEach(ws => ws.close(manualClose));
