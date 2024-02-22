@@ -17,7 +17,8 @@ const messageInfo = {
     select: {
       id: true,
       name: true,
-      iconUrl: true
+      iconUrl: true,
+      description: true
     }
   },
   createdAt: true,
@@ -177,7 +178,7 @@ async function deleteMessage(req: Request, res: Response, next: NextFunction): P
   try {
     const deletedMessage = await prisma.message.delete({
       where: { id },
-      select: { id: true }
+      select: messageInfo
     });
     req.socketPayload = {
       op: 'MESSAGE_DELETE',
