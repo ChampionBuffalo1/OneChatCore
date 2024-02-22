@@ -34,7 +34,9 @@ export function prismaHandler(err: Error, req: Request, _res: Response, next: Ne
   }
   next(err);
 }
-
+// NOTE: Current version of eslint is throwing no-unused-vars on `_next` parameter.
+//       The middleware won't considered as an error handler if it is not present in the function signature
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function unknownHandler(err: Error, _req: Request, res: Response, _next: NextFunction): void {
   if (err instanceof SyntaxError && err.message.includes('JSON')) {
     res.status(400).json(INVALID_REQUEST_BODY);

@@ -15,6 +15,24 @@ function sendMessage(uuid: string, content: BufStr | Record<string, unknown>, us
   return true;
 }
 
+type MetaInfo = Array<{
+  id: string;
+  name: string;
+  iconUrl: string | null;
+  description: string | null;
+  messages: Array<{
+    id: string;
+    text: string;
+    author: {
+      id: string;
+      username: string;
+      avatarUrl: string | null;
+    };
+    createdAt: Date;
+    updatedAt: Date;
+  }>;
+}>;
+
 async function getUserMetadata(userId: string): Promise<MetaInfo> {
   const metadata = await prisma.member.findMany({
     where: { userId },
@@ -52,21 +70,3 @@ async function getUserMetadata(userId: string): Promise<MetaInfo> {
 }
 
 export { sendMessage, manualClose, getUserMetadata };
-
-type MetaInfo = Array<{
-  id: string;
-  name: string;
-  iconUrl: string | null;
-  description: string | null;
-  messages: Array<{
-    id: string;
-    text: string;
-    author: {
-      id: string;
-      username: string;
-      avatarUrl: string | null;
-    };
-    createdAt: Date;
-    updatedAt: Date;
-  }>;
-}>;
