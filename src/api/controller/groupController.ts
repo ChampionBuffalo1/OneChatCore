@@ -21,38 +21,20 @@ async function createGroup(req: Request, res: Response, next: NextFunction): Pro
   const authUserId = req.payload.userId;
   try {
     // Creates a group and adds owner as a member and assigns a administrator role
-    const group = await prisma.$transaction(async tx => {
-      const createInfo = await tx.group.create({
-        data: {
-          name,
-          ownerId: authUserId,
-          description: description || '',
-          members: {
-            create: {
-              userId: authUserId,
-              permissions: setPermission(0, 'ADMINISTRATOR')
-            }
-          }
-        },
-        select: {
-          ...BasicInfo,
-          members: {
-            where: {
-              userId: authUserId
-            },
-            select: { id: true },
-            take: 1
+    const group = await prisma.group.create({
+      data: {
+        name,
+        ownerId: authUserId,
+        description: description || '',
+        members: {
+          create: {
+            userId: authUserId,
+            permissions: setPermission(0, 'ADMINISTRATOR')
           }
         }
-      });
-      const { members, ...group } = createInfo;
-      return group;
+      },
+      select: BasicInfo
     });
-
-    req.socketPayload = {
-      op: 'GROUP_CREATE',
-      d: group
-    };
 
     res.status(200).json(successResponse(group));
     next();
@@ -102,8 +84,8 @@ async function leaveGroup(req: Request, res: Response, next: NextFunction): Prom
       }
     });
     req.socketPayload = {
-      d: deletedMember,
-      op: 'GROUP_LEAVE'
+      op: 'GROUP_LEAVE',
+      d: deletedMember
     };
     res.status(200).json(deletedMember);
     next();
@@ -135,7 +117,9 @@ async function deleteGroup(req: Request, res: Response, next: NextFunction): Pro
     });
     req.socketPayload = {
       op: 'GROUP_DELETE',
-      d: groupDelete
+      d: {
+        group: groupDelete
+      }
     };
     res.status(200).json(successResponse(groupDelete));
     next();
@@ -210,7 +194,7 @@ async function groupIconChange(req: Request, res: Response, next: NextFunction):
       return;
     }
 
-    const url = prisma.$transaction(async tx => {
+    const url = await prisma.$transaction(async tx => {
       const member = await tx.member.findFirstOrThrow({
         where: {
           groupId,
@@ -235,12 +219,14 @@ async function groupIconChange(req: Request, res: Response, next: NextFunction):
       return secure_url;
     });
 
-    res.json(successResponse({ url }));
+    res.status(200).json(successResponse({ url }));
     req.socketPayload = {
       op: 'ICON_CHANGE',
       d: {
         url,
-        id: groupId
+        group: {
+          id: groupId
+        }
       }
     };
     next();
