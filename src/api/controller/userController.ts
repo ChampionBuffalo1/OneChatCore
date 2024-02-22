@@ -186,14 +186,6 @@ async function userAvatarUpload(req: Request, res: Response, next: NextFunction)
     });
 
     res.json(successResponse({ url: secure_url }));
-    req.socketPayload = {
-      op: 'AVATAR_CHANGE',
-      d: {
-        id: authUserId,
-        url: secure_url
-      }
-    };
-    next();
   } catch (err) {
     next(err);
   }
