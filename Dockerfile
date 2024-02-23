@@ -1,12 +1,15 @@
-FROM node:18-alpine AS base
+FROM node:20-alpine AS base
 
 FROM base AS deps
 # Reference: https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine
-RUN apk add --no-cache libc6-compat
+RUN apk update && \ 
+    apk upgrade && \
+    apk add --no-cache libc6-compat && \
+    apk add dumb-init
 WORKDIR /app
 COPY package.json yarn.lock ./
 COPY prisma ./
-RUN yarn --frozen-lockfile
+RUN yarn --frozen-lockfile --ignore-engines
 
 FROM base AS builder
 WORKDIR /app
@@ -34,4 +37,7 @@ COPY --from=builder --chown=core:nodejs /app/logs ./logs
 COPY --from=builder --chown=core:nodejs /app/uploads ./uploads
 
 EXPOSE 3000
-CMD ["yarn", "start"]
+ENV PORT 3000
+ENV NODE_ENV production
+
+CMD ["dumb-init", "node", "dist/index.js"]
