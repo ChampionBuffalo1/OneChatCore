@@ -1,4 +1,6 @@
 import fs from 'node:fs';
+import sharp from 'sharp';
+import path from 'node:path';
 import { promisify } from 'node:util';
 import { v2 as cloudinary } from 'cloudinary';
 import { PaginatedResponse } from '../typings';
@@ -44,13 +46,34 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-async function cloudinaryUpload(filePath: string, width = 400, height = 400): Promise<string> {
+const formats = ['jpg', 'png', 'gif', 'webp'],
+  radius = 120;
+async function cloudinaryUpload(filePath: string, icon = true, width = 400, height = 400): Promise<string> {
   try {
-    const uploadedFile = await cloudinary.uploader.upload(filePath, {
+    let file = filePath;
+    const ext = path.extname(file);
+    if (!formats.some(format => ext.endsWith(format))) {
+      throw new Error('INVALID FORMAT', { cause: 'format not allowed' });
+    }
+    if (icon && !ext.endsWith('gif')) {
+      file = filePath.replace(ext, '-2' + ext);
+      await sharp(filePath)
+        .resize({ fit: 'cover', width, height })
+        .composite([
+          {
+            input: Buffer.from(
+              `<svg><rect x="0" y="0" width="${width}" height="${height}" rx="${radius}" ry="${radius}" fill="rgba(255,255,255,1)"/></svg>`
+            ),
+            blend: 'dest-in'
+          }
+        ])
+        .toFile(file);
+    }
+    const uploadedFile = await cloudinary.uploader.upload(file, {
       resource_type: 'image',
       folder: CLOUDINARY_FOLDER_NAME,
-      allowed_formats: ['jpg', 'png', 'gif', 'webp'],
-      transformation: [{ quality: 'auto:eco', fetch_format: 'auto', width, height }]
+      allowed_formats: formats,
+      transformation: [{ quality: 'auto:eco', fetch_format: 'auto' }]
     });
     return uploadedFile.secure_url;
   } finally {
