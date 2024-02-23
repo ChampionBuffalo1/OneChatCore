@@ -8,7 +8,7 @@ class SocketStore {
   private groupSocket: Map<string, Set<string>> = new Map();
   // user_id => Socket
   private authSocket: Map<string, WebSocket> = new Map();
-  // nano_id => Socket (Removed after 30s if not authenticated)
+  // uuid => Socket (Removed after 30s if not authenticated)
   private tmpSocket: Map<string, WebSocket> = new Map();
   constructor(private readonly limit: number) {}
   // For tmp socket connection that will be removed after some amount of times if not authenticated

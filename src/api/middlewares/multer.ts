@@ -1,8 +1,8 @@
 import fs from 'node:fs';
 import multer from 'multer';
 import path from 'node:path';
-import type { Request } from 'express';
 import { Logger } from '../../lib';
+import type { Request } from 'express';
 
 const uploadDir = path.join(process.cwd(), 'uploads');
 
