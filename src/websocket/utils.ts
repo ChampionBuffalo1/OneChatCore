@@ -33,7 +33,7 @@ type MetaInfo = Array<{
   }>;
 }>;
 
-async function getUserMetadata(userId: string): Promise<MetaInfo> {
+async function getUserMetadata(userId: string, take: number, skip: number): Promise<MetaInfo> {
   const metadata = await prisma.member.findMany({
     where: { userId },
     select: {
@@ -64,7 +64,9 @@ async function getUserMetadata(userId: string): Promise<MetaInfo> {
           }
         }
       }
-    }
+    },
+    take,
+    skip
   });
   return metadata.map(data => data.group);
 }

@@ -1,7 +1,8 @@
 import store from './Store';
 import { WebSocket } from 'ws';
-import { Logger, WsAuthSchema, getJwtPayload } from '../lib';
+import { RESULT_PER_PAGE } from '../Constants';
 import { manualClose, sendMessage, getUserMetadata } from './utils';
+import { Logger, WsAuthSchema, getJwtPayload, paginatedParameters, prisma } from '../lib';
 
 const maxwait = 30; // in seconds
 
@@ -13,17 +14,26 @@ async function handshake(message: string, uuid: string) {
       // User auth verification and socket upgrade
       const payload = getJwtPayload(token);
       if (payload.userId) {
-        const metadata = await getUserMetadata(payload.userId);
         const socket = store.upgradeSocket(uuid, payload.userId);
-        sendMessage(payload.userId, { data: metadata, message: 'Authenticated successfully' });
+        sendMessage(payload.userId, { message: 'Authenticated successfully' });
 
-        const groupIds = metadata.map(group => group.id);
-        for (const id of groupIds) {
-          store.setGroupConnection(id, payload.userId);
+        const total = await prisma.member.count({
+          where: { userId: payload.userId }
+        });
+        const totalPages = total / RESULT_PER_PAGE;
+
+        const groupIds: string[] = [];
+        for (let i = 0; i < totalPages; i++) {
+          const { take, skip } = paginatedParameters(i, total, RESULT_PER_PAGE);
+
+          const metadata = await getUserMetadata(payload.userId, take, skip);
+          metadata.forEach(group => groupIds.push(group.id));
+
+          for (const group of metadata) {
+            store.setGroupConnection(group.id, payload.userId);
+          }
+          socket.send(JSON.stringify(metadata));
         }
-
-        // Initial data send
-        socket.send(JSON.stringify(metadata));
 
         // Removing old tmp listeners
         //  0th listener is setup by `ws` package itself

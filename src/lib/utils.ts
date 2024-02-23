@@ -22,8 +22,12 @@ const expBackOff = (k: number): number => {
   return Math.max(tp * 2, r * tp);
 };
 
-function paginatedParameters(query: string, totalRecords: number, resultPerPage = RESULT_PER_PAGE): PaginatedResponse {
-  let queryNum = query ? parseInt(query, 10) : 0;
+function paginatedParameters(
+  query: number | string,
+  totalRecords: number,
+  resultPerPage = RESULT_PER_PAGE
+): PaginatedResponse {
+  let queryNum = typeof query === 'number' ? query : parseInt(query, 10);
   if (Number.isNaN(queryNum) || !Number.isSafeInteger(queryNum)) {
     queryNum = 0;
   }
