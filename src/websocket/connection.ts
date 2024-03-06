@@ -1,8 +1,13 @@
+import { z } from 'zod';
 import store from './Store';
 import { WebSocket } from 'ws';
 import { RESULT_PER_PAGE } from '../Constants';
 import { manualClose, sendMessage, getUserMetadata } from './utils';
-import { Logger, WsAuthSchema, getJwtPayload, paginatedParameters, prisma } from '../lib';
+import { prisma, Logger, getJwtPayload, paginatedParameters } from '../lib';
+
+const WsAuthSchema = z.object({
+  token: z.string().min(1)
+});
 
 const maxwait = 30; // in seconds
 
@@ -15,16 +20,18 @@ async function handshake(message: string, uuid: string) {
       const payload = getJwtPayload(token);
       if (payload.userId) {
         const socket = store.upgradeSocket(uuid, payload.userId);
-        sendMessage(payload.userId, {
-          op: 'USER_AUTH_SUCCESS',
-          d: {
-            message: 'Authenticated successfully'
-          }
-        });
-
         const total = await prisma.member.count({
           where: { userId: payload.userId }
         });
+        if (total === 0) {
+          socket.send(
+            JSON.stringify({
+              op: 'USER_METADATA',
+              d: []
+            })
+          );
+          return;
+        }
         const totalPages = total / RESULT_PER_PAGE;
 
         const groupIds: string[] = [];
@@ -39,7 +46,7 @@ async function handshake(message: string, uuid: string) {
           }
           socket.send(
             JSON.stringify({
-              op: 'USER_META_DATA',
+              op: 'USER_METADATA',
               d: metadata
             })
           );
