@@ -15,7 +15,12 @@ async function handshake(message: string, uuid: string) {
       const payload = getJwtPayload(token);
       if (payload.userId) {
         const socket = store.upgradeSocket(uuid, payload.userId);
-        sendMessage(payload.userId, { message: 'Authenticated successfully' });
+        sendMessage(payload.userId, {
+          op: 'USER_AUTH_SUCCESS',
+          d: {
+            message: 'Authenticated successfully'
+          }
+        });
 
         const total = await prisma.member.count({
           where: { userId: payload.userId }
@@ -32,7 +37,12 @@ async function handshake(message: string, uuid: string) {
           for (const group of metadata) {
             store.setGroupConnection(group.id, payload.userId);
           }
-          socket.send(JSON.stringify(metadata));
+          socket.send(
+            JSON.stringify({
+              op: 'USER_META_DATA',
+              d: metadata
+            })
+          );
         }
 
         // Removing old tmp listeners
@@ -51,11 +61,27 @@ async function handshake(message: string, uuid: string) {
         });
       }
     } else {
-      sendMessage(uuid, { error: authSchema.error }, true);
+      sendMessage(
+        uuid,
+        {
+          op: 'INVALID_SCHEMA',
+          d: {
+            error: authSchema.error
+          }
+        },
+        true
+      );
     }
   } catch (err) {
     if ((err as Error).message === 'JwtError') {
-      sendMessage(uuid, { error: (err as Error).cause + '\nGenerate a new token and try again' }, true);
+      sendMessage(
+        uuid,
+        {
+          op: 'USER_AUTH_FAILURE',
+          d: { error: (err as Error).cause + '\nGenerate a new token and try again' }
+        },
+        true
+      );
     }
   }
 }
@@ -65,8 +91,11 @@ function handleConnection(ws: WebSocket) {
   sendMessage(
     uuid,
     {
-      time: maxwait,
-      message: `Verify with token within ${maxwait} seconds`
+      op: 'USER_AUTH_INIT',
+      d: {
+        time: maxwait,
+        message: `Verify with token within ${maxwait} seconds`
+      }
     },
     true
   );

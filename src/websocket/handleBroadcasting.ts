@@ -10,6 +10,7 @@ export default function handleBroadcasting(req: Request, _: unknown, next: NextF
   if (!members) return;
   for (const socketKey of members) {
     const socket = store.getConnection(socketKey);
-    socket?.send(JSON.stringify(req.socketPayload.d));
+    // { op: EVENT, d: PAYLOAD } = req.socketPayload
+    socket?.send(JSON.stringify(req.socketPayload));
   }
 }
