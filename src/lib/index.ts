@@ -4,5 +4,4 @@ export * from './db';
 export * from './jwt';
 export * from './utils';
 export * from './response';
-export * from './ZodSchema';
 export { Logger };
