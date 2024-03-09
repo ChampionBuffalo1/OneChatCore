@@ -18,11 +18,9 @@ services:
 
   # Metrics for linux hosts for windows support use `windows_exporter`
   node_exporter:
-    container_name: linux-metrics
+    container_name: os-metrics
     image: prom/node-exporter
     restart: unless-stopped
-    ports:
-      - 9100:9100
     command:
       - '--path.rootfs=/host'
     network_mode: host
