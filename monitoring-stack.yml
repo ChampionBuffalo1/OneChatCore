@@ -4,7 +4,7 @@ services:
   prometheus:
     container_name: prom-server
     image: prom/prometheus
-    restart: on-failure
+    restart: unless-stopped
     ports:
       - 9090:9090
     volumes:
@@ -16,10 +16,24 @@ services:
     networks:
       - monitor
 
+  # Metrics for linux hosts for windows support use `windows_exporter`
+  node_exporter:
+    container_name: linux-metrics
+    image: prom/node-exporter
+    restart: unless-stopped
+    ports:
+      - 9100:9100
+    command:
+      - '--path.rootfs=/host'
+    network_mode: host
+    pid: host
+    volumes:
+      - '/:/host:ro,rslave'
+
   grafana:
     container_name: grafana
     image: grafana/grafana
-    restart: on-failure
+    restart: unless-stopped
     ports:
       - 3000:3000
     depends_on:
@@ -32,7 +46,7 @@ services:
   grafana-loki:
     container_name: loki
     image: grafana/loki
-    restart: on-failure
+    restart: unless-stopped
     ports:
       - 3100:3100
     depends_on:

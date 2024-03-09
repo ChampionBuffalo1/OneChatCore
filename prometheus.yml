@@ -1,9 +1,11 @@
 global:
-  scrape_interval: 10s
+  scrape_interval: 2m
 
 scrape_configs:
-  - job_name: 'onechat-metric'
-    metrics_path: '/metrics'
+  - job_name: 'api'
     static_configs:
       # Change the IP according to your need
       - targets: ['0.0.0.0:8000']
+  - job_name: 'node'
+    static_configs:
+      - targets: ['0.0.0.0:9100']
