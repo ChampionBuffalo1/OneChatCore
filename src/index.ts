@@ -7,6 +7,7 @@ import '@total-typescript/ts-reset';
 import Logger from './lib/Logger';
 import { PORT } from './Constants';
 import { createServer } from 'node:http';
+import { metricHandler } from './metrics';
 import { errorResponse } from './lib/response';
 import { createSocketServer } from './websocket';
 import { attachSession } from './api/middlewares';
@@ -27,6 +28,9 @@ import { prismaHandler, unknownHandler } from './api/middlewares/error';
     );
 
   app.use('/api/v1', apiRoute);
+  // TODO: protect route for only authorized prom server access
+  app.get('/metrics', metricHandler);
+
   app.get('/', (_, res) => res.sendStatus(200));
   createSocketServer(server);
   // Error handler middlewares
