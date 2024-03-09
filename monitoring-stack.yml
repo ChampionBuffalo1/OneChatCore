@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  prometheus:
+    container_name: prom-server
+    image: prom/prometheus
+    restart: on-failure
+    ports:
+      - 9090:9090
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prom:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    networks:
+      - monitor
+
+  grafana:
+    container_name: grafana
+    image: grafana/grafana
+    restart: on-failure
+    ports:
+      - 3000:3000
+    depends_on:
+      - prometheus
+    volumes:
+      - grafana:/var/lib/grafana
+    networks:
+      - monitor
+
+  grafana-loki:
+    container_name: loki
+    image: grafana/loki
+    restart: on-failure
+    ports:
+      - 3100:3100
+    depends_on:
+      - grafana
+    volumes:
+      - loki:/loki
+    networks:
+      - monitor
+
+volumes:
+  prom:
+  loki:
+  grafana:
+networks:
+  monitor:
