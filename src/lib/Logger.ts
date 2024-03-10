@@ -27,7 +27,8 @@ if (isProd) {
     const loki = new LokiTransport({
       host: process.env.GRAFANA_IP,
       onConnectionError: console.error, // Log error to console if connection problem
-      labels: { job: 'onechat-logs' }
+      labels: { job: 'onechat-logs' },
+      basicAuth: process.env.LOKI_AUTH
     });
     transports.push(loki);
     format = winston.format.json();
