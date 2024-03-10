@@ -8,6 +8,7 @@ declare global {
       CLOUDINARY_API_KEY: string;
       CLOUDINARY_CLOUD_NAME: string;
       CLOUDINARY_API_SECRET: string;
+      GRAFANA_IP?: string;
     }
   }
 }
