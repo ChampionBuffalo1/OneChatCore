@@ -20,6 +20,11 @@ type MetaInfo = Array<{
   name: string;
   iconUrl: string | null;
   description: string | null;
+  owner: {
+    id: string;
+    username: string;
+    avatarUrl: string | null;
+  };
   messages: Array<{
     id: string;
     text: string;
@@ -43,6 +48,13 @@ async function getUserMetadata(userId: string, take: number, skip: number): Prom
           name: true,
           iconUrl: true,
           description: true,
+          owner: {
+            select: {
+              id: true,
+              username: true,
+              avatarUrl: true
+            }
+          },
           messages: {
             select: {
               id: true,
@@ -57,10 +69,8 @@ async function getUserMetadata(userId: string, take: number, skip: number): Prom
               createdAt: true,
               updatedAt: true
             },
-            take: 40,
-            orderBy: {
-              createdAt: 'desc'
-            }
+            take: 30, // Last 30 messages
+            orderBy: { createdAt: 'desc' }
           }
         }
       }
