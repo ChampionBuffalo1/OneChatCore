@@ -117,9 +117,7 @@ async function deleteGroup(req: Request, res: Response, next: NextFunction): Pro
     });
     req.socketPayload = {
       op: 'GROUP_DELETE',
-      d: {
-        group: groupDelete
-      }
+      d: { group: groupDelete }
     };
     res.status(200).json(successResponse(groupDelete));
     next();

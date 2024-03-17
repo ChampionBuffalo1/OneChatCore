@@ -70,7 +70,7 @@ async function getUserMetadata(userId: string, take: number, skip: number): Prom
               updatedAt: true
             },
             take: 30, // Last 30 messages
-            orderBy: { createdAt: 'desc' }
+            orderBy: { createdAt: 'asc' }
           }
         }
       }
