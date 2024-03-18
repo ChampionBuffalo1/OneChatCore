@@ -174,11 +174,40 @@ async function createMessage(req: Request, res: Response, next: NextFunction): P
 }
 
 async function deleteMessage(req: Request, res: Response, next: NextFunction): Promise<void> {
-  const id = req.params.message_id;
+  const groupId = req.params.id,
+    userId = req.payload.userId,
+    id = req.params.message_id;
   try {
-    const deletedMessage = await prisma.message.delete({
-      where: { id },
-      select: messageInfo
+    const deletedMessage = await prisma.$transaction(async tx => {
+      const member = await tx.member.findFirst({
+        where: { userId, groupId },
+        select: { permissions: true }
+      });
+
+      if (!member) {
+        throw new Error('MEMBER_NOT_FOUND', {
+          cause: 'You are not a member of the group'
+        });
+      }
+
+      const WhereCond: {
+        id: string;
+        groupId: string;
+        author?: { id: string };
+      } = { id, groupId };
+
+      if (!checkPermission(member.permissions, 'MANAGE_MESSAGES')) {
+        // If the user doesn't have `manage_message` permission then they can only delete their own message
+        WhereCond['author'] = { id: userId };
+      }
+
+      // Delete fails with exception if user doesn't have perms and isnt the author
+      const deleted = await tx.message.delete({
+        where: WhereCond,
+        select: messageInfo
+      });
+
+      return deleted;
     });
     req.socketPayload = {
       op: 'MESSAGE_DELETE',
@@ -190,8 +219,16 @@ async function deleteMessage(req: Request, res: Response, next: NextFunction): P
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2025') {
       res.status(400).json(
         errorResponse({
-          code: 'INVALID_MESSAGE',
-          message: 'Invalid message id'
+          code: 'INVALID_PERMISSION',
+          message: "You don't have permission required to delete messages in the group"
+        })
+      );
+      return;
+    } else if (err instanceof Error) {
+      res.status(400).json(
+        errorResponse({
+          code: err.message,
+          message: err.cause as string
         })
       );
       return;
