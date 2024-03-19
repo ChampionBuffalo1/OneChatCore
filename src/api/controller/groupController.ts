@@ -222,6 +222,7 @@ async function groupEdit(req: Request, res: Response, next: NextFunction): Promi
           message: 'Request body must have either name or description keys'
         })
       );
+      return;
     }
     next(err);
   }
