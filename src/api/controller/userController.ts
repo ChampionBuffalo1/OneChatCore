@@ -112,6 +112,7 @@ type updateKeys = 'passwordHash' | 'username';
 async function userEdit(req: Request, res: Response, next: NextFunction): Promise<void> {
   const keys = Object.keys(req.body);
   try {
+    if (keys.length === 0) throw new Error('NO_KEYS');
     const updatedUser: Partial<Record<updateKeys, string>> = {};
     if (keys.includes('username')) {
       updatedUser['username'] = req.body.username;
@@ -145,6 +146,14 @@ async function userEdit(req: Request, res: Response, next: NextFunction): Promis
         );
         return;
       }
+    } else if (err instanceof Error && err.message === 'NO_KEYS') {
+      res.status(400).json(
+        errorResponse({
+          code: 'NO_DATA',
+          message: 'Request body must have either name or description keys'
+        })
+      );
+      return;
     }
     next(err);
   }
