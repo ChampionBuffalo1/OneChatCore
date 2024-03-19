@@ -50,7 +50,7 @@ async function createInvite(req: Request, res: Response, next: NextFunction): Pr
       res.status(400).json(
         errorResponse({
           code: 'MEMBER_NOT_FOUND',
-          message: 'You are not in present in the group'
+          message: 'You are not a part of this group.'
         })
       );
       return;
