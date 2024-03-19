@@ -75,7 +75,7 @@ async function useInvite(req: Request, res: Response, next: NextFunction): Promi
         where: { id: inviteId }
       });
 
-      if ((invite.limit && invite.limit === 0) || (invite.expiresAt && new Date(invite.expiresAt) >= new Date())) {
+      if ((invite.limit && invite.limit === 0) || (invite.expiresAt && new Date(invite.expiresAt) <= new Date())) {
         await tx.invite.delete({ where: { id: inviteId } });
         throw new Error('INVITE_EXPIRED', {
           cause: 'Invite has been expired.'
@@ -139,7 +139,7 @@ async function useInvite(req: Request, res: Response, next: NextFunction): Promi
         })
       );
       return;
-    } else if (err instanceof Error && err.cause === 'INVITE_EXPIRED') {
+    } else if (err instanceof Error && (err.message === 'INVITE_EXPIRED' || err.message === 'UNAUTHORIZED')) {
       res.status(400).json(
         errorResponse({
           code: err.message,
