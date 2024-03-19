@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { validateSchema } from '../middlewares';
 import { permissionChange } from '../../lib/validators/memberSchema';
-import { changePermission, getGroupMembers } from '../controller/memberController';
+import { changePermission, getCurrentMemberPermission, getGroupMembers } from '../controller/memberController';
 
 const memberRouter = Router({
   mergeParams: true
@@ -9,5 +9,6 @@ const memberRouter = Router({
 
 memberRouter.get('/', getGroupMembers);
 memberRouter.patch('/permission', validateSchema(permissionChange), changePermission);
+memberRouter.get('/permission', getCurrentMemberPermission);
 
 export default memberRouter;
