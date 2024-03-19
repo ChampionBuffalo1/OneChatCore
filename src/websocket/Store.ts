@@ -37,7 +37,7 @@ class SocketStore {
   getConnection(uuid: string): WebSocket | undefined {
     return this.authSocket.get(uuid);
   }
-  setConnection(uuid: string, ws: WebSocket): void {
+  private setConnection(uuid: string, ws: WebSocket): void {
     if (this.authSocket.size > this.limit) throw new Error('Maximum concurrent websocket limit reached.');
     this.authSocket.set(uuid, ws);
   }
