@@ -26,7 +26,7 @@ groupRoute.post('/:id/leave', leaveGroup);
 groupRoute.delete('/:id/delete', deleteGroup);
 groupRoute.post('/:id/icon', upload.single('icon'), groupIconChange);
 groupRoute.post('/create', validateSchema(groupCreateSchema), createGroup);
-groupRoute.post('/:id/edit', validateSchema(groupUpdateSchema), groupEdit);
+groupRoute.patch('/:id/edit', validateSchema(groupUpdateSchema), groupEdit);
 
 groupRoute.use(handleBroadcasting);
 
