@@ -72,15 +72,22 @@ async function useInvite(req: Request, res: Response, next: NextFunction): Promi
   try {
     const member = await prisma.$transaction(async tx => {
       const invite = await tx.invite.findFirstOrThrow({
-        where: {
-          id: inviteId
-        }
+        where: { id: inviteId }
       });
 
       if ((invite.limit && invite.limit === 0) || (invite.expiresAt && new Date(invite.expiresAt) >= new Date())) {
         await tx.invite.delete({ where: { id: inviteId } });
         throw new Error('INVITE_EXPIRED', {
           cause: 'Invite has been expired.'
+        });
+      }
+      const alreadyExists = await tx.member.findFirst({
+        where: { userId: authUserId, groupId: invite.groupId },
+        select: { id: true }
+      });
+      if (alreadyExists?.id) {
+        throw new Error('UNAUTHORIZED', {
+          cause: "You are trying to join a group you're already part of!"
         });
       }
 
@@ -106,9 +113,7 @@ async function useInvite(req: Request, res: Response, next: NextFunction): Promi
 
       if (member.id) {
         await tx.invite.update({
-          where: {
-            id: inviteId
-          },
+          where: { id: inviteId },
           data: {
             limit: {
               decrement: 1
