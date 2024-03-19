@@ -91,25 +91,28 @@ async function useInvite(req: Request, res: Response, next: NextFunction): Promi
         });
       }
 
-      const member = await tx.member.create({
-        data: {
-          groupId: invite.groupId,
-          userId: authUserId,
-          permissions: setPermission(0, ['READ_MESSAGES', 'WRITE_MESSAGES'])
-        },
-        select: {
-          id: true,
-          group: {
-            select: {
-              id: true,
-              name: true,
-              iconUrl: true,
-              description: true
-            }
+      const [member] = await Promise.all([
+        tx.member.create({
+          data: {
+            groupId: invite.groupId,
+            userId: authUserId,
+            permissions: setPermission(0, ['READ_MESSAGES', 'WRITE_MESSAGES'])
           },
-          user: { select: { id: true, username: true } }
-        }
-      });
+          select: {
+            id: true,
+            group: {
+              select: {
+                id: true,
+                name: true,
+                iconUrl: true,
+                description: true
+              }
+            },
+            user: { select: { id: true, username: true } }
+          }
+        }),
+        invite.limit && invite.limit - 1 === 0 ? await tx.invite.delete({ where: { id: inviteId } }) : undefined
+      ]);
 
       if (member.id) {
         await tx.invite.update({
