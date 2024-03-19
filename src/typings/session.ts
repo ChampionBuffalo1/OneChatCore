@@ -53,6 +53,7 @@ type socketdata = {
 interface SocketPayload {
   d: socketdata;
   op:
+    | 'GROUP_EDIT'
     | 'GROUP_LEAVE'
     | 'GROUP_DELETE'
     | 'ICON_CHANGE'

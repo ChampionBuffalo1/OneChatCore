@@ -87,7 +87,7 @@ async function leaveGroup(req: Request, res: Response, next: NextFunction): Prom
       op: 'GROUP_LEAVE',
       d: deletedMember
     };
-    res.status(200).json(deletedMember);
+    res.status(200).json(successResponse(deletedMember));
     next();
   } catch (err) {
     if (err instanceof Error && err.message === 'ACTION_NOT_ALLOWED') {
@@ -147,7 +147,6 @@ async function getGroups(req: Request, res: Response, next: NextFunction): Promi
       const groups = await tx.member.findMany({
         where: { userId },
         select: {
-          id: true,
           group: {
             select: {
               id: true,
@@ -172,6 +171,57 @@ async function getGroups(req: Request, res: Response, next: NextFunction): Promi
 
     res.status(200).json(successResponse(groups, meta));
   } catch (err) {
+    next(err);
+  }
+}
+
+async function groupEdit(req: Request, res: Response, next: NextFunction): Promise<void> {
+  const keys = Object.keys(req.body);
+  try {
+    if (keys.length === 0) throw new Error('NO_KEYS');
+    const data = await prisma.group.update({
+      where: { id: req.params.id },
+      data: req.body,
+      select: {
+        id: true,
+        name: true,
+        iconUrl: true,
+        description: true
+      }
+    });
+    req.socketPayload = {
+      op: 'GROUP_EDIT',
+      d: { group: data }
+    };
+    res.status(200).json(successResponse(data));
+  } catch (err) {
+    if (err instanceof Prisma.PrismaClientKnownRequestError) {
+      if (err.code === 'P2025') {
+        res.status(400).json(
+          errorResponse({
+            code: 'INVALID_CREDENTIALS',
+            message: 'Group was not found.'
+          })
+        );
+        return;
+      } else if (err.code === 'P2002') {
+        res.status(400).json(
+          errorResponse({
+            param: 'name',
+            code: 'RESOURCE_EXISTS',
+            message: 'Group name already taken.'
+          })
+        );
+        return;
+      }
+    } else if (err instanceof Error && err.message === 'NO_KEYS') {
+      res.status(400).json(
+        errorResponse({
+          code: 'NO_DATA',
+          message: 'Request body must have either name or description keys'
+        })
+      );
+    }
     next(err);
   }
 }
@@ -250,4 +300,4 @@ async function groupIconChange(req: Request, res: Response, next: NextFunction):
   }
 }
 
-export { getGroups, createGroup, leaveGroup, deleteGroup, groupIconChange };
+export { getGroups, createGroup, leaveGroup, deleteGroup, groupIconChange, groupEdit };

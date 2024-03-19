@@ -26,4 +26,9 @@ const inviteSchema = z.object({
   limit: z.number().min(1, 'Limit cannot be less than 1').optional()
 });
 
-export { editGroupSchema, groupCreateSchema, inviteSchema };
+const groupUpdateSchema = z.object({
+  name: z.string().min(1, 'Name cannot be an empty!').max(64, 'name should not exceed 64 character limit').optional(),
+  description: z.string().optional()
+});
+
+export { editGroupSchema, groupCreateSchema, groupUpdateSchema, inviteSchema };
