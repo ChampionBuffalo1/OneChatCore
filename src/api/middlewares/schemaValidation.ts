@@ -6,6 +6,7 @@ export default function validateSchema(schema: ZodSchema) {
   return async (req: Request, res: Response, next: NextFunction) => {
     const parsedBody = await schema.spa(req.body);
     if (parsedBody.success) {
+      req.body = parsedBody.data;
       next();
     } else {
       const errors = parsedBody.error.issues.map(issue => ({
