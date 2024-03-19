@@ -10,7 +10,7 @@ export const Permissions = {
   INVITE_MEMBER: 1 << 4,
   KICK_MEMBER: 1 << 5,
   MANAGE_GROUP: 1 << 6, // modify group name, desc etc
-  ADMINISTRATOR: (1 << 6) - 1 // 111 11 111
+  ADMINISTRATOR: (1 << 7) - 1 // 111 1 111
 };
 
 type AllPermissions = keyof typeof Permissions;

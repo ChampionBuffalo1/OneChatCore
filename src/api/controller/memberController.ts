@@ -83,4 +83,27 @@ async function changePermission(req: Request, res: Response, next: NextFunction)
   }
 }
 
-export { getGroupMembers, changePermission };
+async function getCurrentMemberPermission(req: Request, res: Response, next: NextFunction): Promise<void> {
+  const userId = req.payload.userId,
+    groupId = req.params.id;
+  try {
+    const permission = await prisma.member.findFirstOrThrow({
+      where: { userId, groupId },
+      select: { id: true, permissions: true }
+    });
+    res.status(200).json(successResponse(permission));
+  } catch (err) {
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2025') {
+      res.status(400).json(
+        errorResponse({
+          code: 'MEMBER_NOT_FOUND',
+          message: 'You are not a part of this group.'
+        })
+      );
+      return;
+    }
+    next(err);
+  }
+}
+
+export { getGroupMembers, changePermission, getCurrentMemberPermission };
