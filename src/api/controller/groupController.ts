@@ -194,6 +194,7 @@ async function groupEdit(req: Request, res: Response, next: NextFunction): Promi
       d: { group: data }
     };
     res.status(200).json(successResponse(data));
+    next();
   } catch (err) {
     if (err instanceof Prisma.PrismaClientKnownRequestError) {
       if (err.code === 'P2025') {
