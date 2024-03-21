@@ -9,6 +9,6 @@ const memberRouter = Router({
 
 memberRouter.get('/', getGroupMembers);
 memberRouter.patch('/permission', validateSchema(permissionChange), changePermission);
-memberRouter.get('/permission', validateSchema(getPermission), getCurrentMemberPermission);
+memberRouter.post('/permission', validateSchema(getPermission), getCurrentMemberPermission);
 
 export default memberRouter;
