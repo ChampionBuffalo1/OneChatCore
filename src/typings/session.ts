@@ -48,17 +48,23 @@ type socketdata = {
       // Only the default type and nothing else.
       // Required for GROUP_DELETE
     }
+  | {
+      // PERM_EDIT
+      userId: string;
+      permissions: number;
+    }
 );
 
 interface SocketPayload {
   d: socketdata;
   op:
+    | 'PERM_EDIT'
     | 'GROUP_EDIT'
-    | 'GROUP_LEAVE'
-    | 'GROUP_DELETE'
-    | 'ICON_CHANGE'
     | 'GROUP_JOIN'
+    | 'ICON_CHANGE'
+    | 'GROUP_LEAVE'
     | 'MESSAGE_EDIT'
+    | 'GROUP_DELETE'
     | 'MESSAGE_CREATE'
     | 'MESSAGE_DELETE';
 }

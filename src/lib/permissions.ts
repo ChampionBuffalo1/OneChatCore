@@ -1,6 +1,6 @@
 //  000       0        000
 // GROUP  PERMISSION  MESSAGE
-export const Permissions = {
+const Permissions = {
   READ_MESSAGES: 1 << 0, // 000 00 001
   WRITE_MESSAGES: 1 << 1,
   MANAGE_MESSAGES: (1 << 2) | (1 << 1) | (1 << 0),

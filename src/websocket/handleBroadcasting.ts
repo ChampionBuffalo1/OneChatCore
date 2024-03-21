@@ -14,7 +14,12 @@ export default function handleBroadcasting(req: Request, _: unknown, next: NextF
     const func = req.socketPayload.op === 'GROUP_JOIN' ? store.setGroupConnection : store.removeGroupConnection;
     func(req.socketPayload.d.group.id, (req.socketPayload.d as { user: { id: string } }).user.id);
   }
-  
+  if (req.socketPayload.op === 'PERM_EDIT') {
+    const socket = store.getConnection((req.socketPayload.d as { userId: string }).userId);
+    // Unicast
+    socket?.send(JSON.stringify(req.socketPayload));
+    return;
+  }
 
   for (const socketKey of members) {
     const socket = store.getConnection(socketKey);

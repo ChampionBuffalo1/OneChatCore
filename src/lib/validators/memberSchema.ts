@@ -1,13 +1,12 @@
 import { z } from 'zod';
-import { Permissions } from '../permissions';
 
 const permissionChange = z.object({
-  permissions: z.array(
-    z.object({
-      method: z.enum(['add', 'remove']),
-      permission: z.enum(Object.keys(Permissions) as [string])
-    })
-  )
+  userId: z.string(),
+  permissions: z.number()
 });
 
-export { permissionChange };
+const getPermission = z.object({
+  userId: z.string().optional()
+});
+
+export { getPermission, permissionChange };

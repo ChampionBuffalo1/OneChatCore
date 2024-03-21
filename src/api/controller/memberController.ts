@@ -1,6 +1,6 @@
 import { Prisma } from '@prisma/client';
+import { checkPermission } from '../../lib/permissions';
 import type { Request, Response, NextFunction } from 'express';
-import { removePermission, setPermission } from '../../lib/permissions';
 import { errorResponse, paginatedParameters, prisma, successResponse } from '../../lib';
 
 async function getGroupMembers(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -41,34 +41,46 @@ async function getGroupMembers(req: Request, res: Response, next: NextFunction):
 
 async function changePermission(req: Request, res: Response, next: NextFunction): Promise<void> {
   const groupId = req.params.id,
-    userId = req.payload.userId;
-  const { permissions } = req.body;
+    authUserId = req.payload.userId;
+  const { userId, permissions } = req.body;
   try {
     const member = await prisma.$transaction(async tx => {
       const member = await tx.member.findFirstOrThrow({
-        where: { userId, groupId }
+        where: { userId: authUserId, groupId }
       });
-      let newPermission = member.permissions;
-
-      for (const { method, permission } of permissions) {
-        if (method === 'add') {
-          newPermission = setPermission(newPermission, permission);
-        } else if (method === 'remove') {
-          newPermission = removePermission(newPermission, permission);
-        }
+      if (!checkPermission(member.permissions, 'CHANGE_PERMISSION')) {
+        throw new Error('INSUFFICIENT_PERMISSION', {
+          cause: "You do't have the permissions required to perform this action."
+        });
+      }
+      // Only admins can give admin permission to others
+      if (checkPermission(permissions, 'ADMINISTRATOR') && !checkPermission(member.permissions, 'ADMINISTRATOR')) {
+        throw new Error('INSUFFICIENT_PERMISSION', {
+          cause: 'Only admininistrators can give administrator permission to others.'
+        });
       }
 
       const updatedMember = await tx.member.update({
-        where: { id: member.id },
-        data: { permissions: newPermission },
+        where: { id: userId },
+        data: { permissions },
         select: {
-          id: true,
-          permissions: true
+          userId: true,
+          permissions: true,
+          group: {
+            select: {
+              id: true
+            }
+          }
         }
       });
       return updatedMember;
     });
+    req.socketPayload = {
+      op: 'PERM_EDIT',
+      d: member
+    };
     res.status(200).json(successResponse(member));
+    next();
   } catch (err) {
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2025') {
       res.status(400).json(
@@ -78,13 +90,21 @@ async function changePermission(req: Request, res: Response, next: NextFunction)
         })
       );
       return;
+    } else if (err instanceof Error && err.message === 'INSUFFICIENT_PERMISSION') {
+      res.status(400).json(
+        errorResponse({
+          code: err.message,
+          message: err.cause as string
+        })
+      );
+      return;
     }
     next(err);
   }
 }
 
 async function getCurrentMemberPermission(req: Request, res: Response, next: NextFunction): Promise<void> {
-  const userId = req.payload.userId,
+  const userId = req.body.userId || req.payload.userId,
     groupId = req.params.id;
   try {
     const permission = await prisma.member.findFirstOrThrow({
@@ -97,7 +117,7 @@ async function getCurrentMemberPermission(req: Request, res: Response, next: Nex
       res.status(400).json(
         errorResponse({
           code: 'MEMBER_NOT_FOUND',
-          message: 'You are not a part of this group.'
+          message: 'User is not a part of this group.'
         })
       );
       return;
