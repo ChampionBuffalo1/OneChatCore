@@ -135,7 +135,7 @@ async function useInvite(req: Request, res: Response, next: NextFunction): Promi
     next();
   } catch (err) {
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2025') {
-      res.status(200).json(
+      res.status(400).json(
         errorResponse({
           code: 'INVALID_INVITE',
           message: 'Invite not found.'
