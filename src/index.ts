@@ -3,14 +3,15 @@ import 'dotenv-safe/config';
 import apiRoute from './api';
 import helmet from 'helmet';
 import express from 'express';
-import '@total-typescript/ts-reset';
 import Logger from './lib/Logger';
 import { PORT } from './Constants';
+import '@total-typescript/ts-reset';
 import { createServer } from 'node:http';
-import { metricHandler } from './metrics';
+import responseTime from 'response-time';
 import { errorResponse } from './lib/response';
 import { createSocketServer } from './websocket';
 import { attachSession } from './api/middlewares';
+import { metricHandler, responseTimeMetric } from './metrics';
 import { prismaHandler, unknownHandler } from './api/middlewares/error';
 
 (async (): Promise<void> => {
@@ -24,7 +25,16 @@ import { prismaHandler, unknownHandler } from './api/middlewares/error';
       cors(),
       express.json({ limit: '2mb' }),
       express.urlencoded({ extended: true, limit: '100kb' }),
-      attachSession
+      attachSession,
+      responseTime((req, _res, time) => {
+        responseTimeMetric
+          .labels({
+            route: req.url,
+            method: req.method,
+            status_code: req.statusCode
+          })
+          .observe(time);
+      })
     );
 
   app.use('/api/v1', apiRoute);

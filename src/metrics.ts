@@ -1,5 +1,5 @@
-import client from 'prom-client';
 import { prisma } from './lib';
+import client from 'prom-client';
 import type { Request, Response } from 'express';
 
 const collectDefaultMetrics = client.collectDefaultMetrics;
@@ -10,3 +10,10 @@ export async function metricHandler(_req: Request, res: Response) {
   const logs = await Promise.all([client.register.metrics(), prisma.$metrics.prometheus()]);
   res.send(logs.join('\n'));
 }
+
+export const responseTimeMetric = new client.Histogram({
+  name: 'http_response_time_seconds',
+  help: 'Response time in seconds',
+  labelNames: ['route', 'method', 'status_code'],
+  buckets: [0, 10, 40, 60, 90, 120, 250, 500, 1000]
+});
