@@ -1,5 +1,5 @@
 import winston from 'winston';
-import { isProd } from '../Constants';
+import { noConsole } from '../Constants';
 import LokiTransport from 'winston-loki';
 
 const transports: winston.transport[] = [new winston.transports.Console()];
@@ -9,7 +9,7 @@ let format = winston.format.combine(
   winston.format.printf(info => `[${info.level.toUpperCase()}]: ${info.message} - ${info.timestamp}`)
 );
 
-if (isProd) {
+if (noConsole) {
   // Removing console logs in prod
   transports.shift();
 }
