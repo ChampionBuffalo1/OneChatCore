@@ -105,7 +105,24 @@ async function useInvite(req: Request, res: Response, next: NextFunction): Promi
                 id: true,
                 name: true,
                 iconUrl: true,
-                description: true
+                description: true,
+                messages: {
+                  select: {
+                    id: true,
+                    text: true,
+                    author: {
+                      select: {
+                        id: true,
+                        username: true,
+                        avatarUrl: true
+                      }
+                    },
+                    createdAt: true,
+                    updatedAt: true
+                  },
+                  take: 30, // Last 30 messages
+                  orderBy: { createdAt: 'asc' }
+                }
               }
             },
             user: { select: { id: true, username: true } }

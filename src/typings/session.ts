@@ -56,6 +56,20 @@ type socketdata = {
   | {
       user: { id: string };
     }
+  | {
+      // GROUP_JOIN
+      messages: {
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        text: string;
+        author: {
+          id: string;
+          username: string;
+          avatarUrl: string | null;
+        };
+      }[];
+    }
 );
 
 interface SocketPayload {
