@@ -16,9 +16,9 @@ export default function handleBroadcasting(req: Request, _: unknown, next: NextF
     // Addding/Removing user to/from socket group on join/leave
     const func =
       req.socketPayload.op === 'GROUP_JOIN' || req.socketPayload.op === 'GROUP_CREATE'
-        ? store.setGroupConnection
-        : store.removeGroupConnection;
-    func(req.socketPayload.d.group.id, (req.socketPayload.d as UserId).user.id);
+        ? 'setGroupConnection'
+        : 'removeGroupConnection';
+    store[func](req.socketPayload.d.group.id, (req.socketPayload.d as UserId).user.id);
   }
   if (req.socketPayload.op === 'PERM_EDIT') {
     const socket = store.getConnection((req.socketPayload.d as { userId: string }).userId);
