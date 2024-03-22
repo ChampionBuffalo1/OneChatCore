@@ -53,6 +53,9 @@ type socketdata = {
       userId: string;
       permissions: number;
     }
+  | {
+      user: { id: string };
+    }
 );
 
 interface SocketPayload {
@@ -64,6 +67,7 @@ interface SocketPayload {
     | 'ICON_CHANGE'
     | 'GROUP_LEAVE'
     | 'MESSAGE_EDIT'
+    | 'GROUP_CREATE'
     | 'GROUP_DELETE'
     | 'MESSAGE_CREATE'
     | 'MESSAGE_DELETE';

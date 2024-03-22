@@ -36,6 +36,13 @@ async function createGroup(req: Request, res: Response, next: NextFunction): Pro
       select: BasicInfo
     });
 
+    req.socketPayload = {
+      op: 'GROUP_CREATE',
+      d: {
+        user: { id: authUserId },
+        group
+      }
+    };
     res.status(200).json(successResponse(group));
     next();
   } catch (err) {

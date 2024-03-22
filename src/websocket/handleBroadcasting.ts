@@ -1,18 +1,24 @@
 import store from './Store';
 import type { Request, NextFunction } from 'express';
 
+type UserId = { user: { id: string } };
 export default function handleBroadcasting(req: Request, _: unknown, next: NextFunction) {
   if (!req.socketPayload) {
     next();
     return;
   }
-  const members = store.getGroupConnections(req.socketPayload.d.group.id);
-  if (!members) return;
 
-  if (req.socketPayload.op === 'GROUP_JOIN' || req.socketPayload.op === 'GROUP_LEAVE') {
+  if (
+    req.socketPayload.op === 'GROUP_JOIN' ||
+    req.socketPayload.op === 'GROUP_CREATE' ||
+    req.socketPayload.op === 'GROUP_LEAVE'
+  ) {
     // Addding/Removing user to/from socket group on join/leave
-    const func = req.socketPayload.op === 'GROUP_JOIN' ? store.setGroupConnection : store.removeGroupConnection;
-    func(req.socketPayload.d.group.id, (req.socketPayload.d as { user: { id: string } }).user.id);
+    const func =
+      req.socketPayload.op === 'GROUP_JOIN' || req.socketPayload.op === 'GROUP_CREATE'
+        ? store.setGroupConnection
+        : store.removeGroupConnection;
+    func(req.socketPayload.d.group.id, (req.socketPayload.d as UserId).user.id);
   }
   if (req.socketPayload.op === 'PERM_EDIT') {
     const socket = store.getConnection((req.socketPayload.d as { userId: string }).userId);
@@ -20,6 +26,9 @@ export default function handleBroadcasting(req: Request, _: unknown, next: NextF
     socket?.send(JSON.stringify(req.socketPayload));
     return;
   }
+
+  const members = store.getGroupConnections(req.socketPayload.d.group.id);
+  if (!members) return;
 
   for (const socketKey of members) {
     const socket = store.getConnection(socketKey);
