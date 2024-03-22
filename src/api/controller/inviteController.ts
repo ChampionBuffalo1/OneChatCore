@@ -91,7 +91,7 @@ async function useInvite(req: Request, res: Response, next: NextFunction): Promi
         });
       }
 
-      const [member] = await Promise.all([
+      const [member, deleted] = await Promise.all([
         tx.member.create({
           data: {
             groupId: invite.groupId,
@@ -114,7 +114,7 @@ async function useInvite(req: Request, res: Response, next: NextFunction): Promi
         invite.limit && invite.limit - 1 === 0 ? await tx.invite.delete({ where: { id: inviteId } }) : undefined
       ]);
 
-      if (member.id) {
+      if (member.id && !deleted?.id) {
         await tx.invite.update({
           where: { id: inviteId },
           data: {
